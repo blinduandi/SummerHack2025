@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -27,25 +27,23 @@ import {
   Code as CodeIcon,
 } from '@mui/icons-material';
 import { LoadingButton, FormInput } from '../../components';
+import { AvatarUpload } from '../../components/ui/AvatarUpload';
 import { useAuth } from '../../hooks';
 
 interface RegisterFormData {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   password: string;
   confirmPassword: string;
+  bio: string;
+  avatar?: string | null;
 }
 
 const schema = yup.object().shape({
-  firstName: yup
+  name: yup
     .string()
-    .min(2, 'First name must be at least 2 characters')
-    .required('First name is required'),
-  lastName: yup
-    .string()
-    .min(2, 'Last name must be at least 2 characters')
-    .required('Last name is required'),
+    .min(2, 'Full name must be at least 2 characters')
+    .required('Full name is required'),
   email: yup
     .string()
     .email('Please enter a valid email')
@@ -61,7 +59,10 @@ const schema = yup.object().shape({
   confirmPassword: yup
     .string()
     .oneOf([yup.ref('password')], 'Passwords must match')
-    .required('Please confirm your password'),
+    .required('Please confirm your password'),  bio: yup
+    .string()
+    .max(500, 'Bio must be less than 500 characters')
+    .default(''),
 });
 
 // Create dark theme matching the landing page
@@ -223,7 +224,6 @@ const StyledLoadingButton = styled(LoadingButton)(({ theme }) => ({
 }));
 
 export const RegisterPage: React.FC = () => {
-  const navigate = useNavigate();
   const { register, isLoading, error, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -235,26 +235,33 @@ export const RegisterPage: React.FC = () => {
     formState: { errors, isValid },
   } = useForm<RegisterFormData>({
     resolver: yupResolver(schema),
-    mode: 'onChange',
-    defaultValues: {
-      firstName: '',
-      lastName: '',
+    mode: 'onChange',    defaultValues: {
+      name: '',
       email: '',
       password: '',
       confirmPassword: '',
+      bio: '',
+      avatar: null,
     },
-  });
-
-  const onSubmit = async (data: RegisterFormData) => {
+  });  const onSubmit = async (data: RegisterFormData) => {
+    console.log('[RegisterPage] Registration form submitted');
     clearError();
-    const success = await register(
+      const success = await register(
       data.email,
       data.password,
-      data.firstName,
-      data.lastName
+      data.name,
+      'student', // default user_type
+      data.bio?.trim() || undefined,
+      data.avatar || undefined
     );
+    
+    console.log('[RegisterPage] Registration result:', success);
+    
     if (success) {
-      navigate('/dashboard');
+      console.log('[RegisterPage] Registration successful, will be redirected by ProtectedRoute');
+      // Don't manually navigate - let ProtectedRoute handle the redirect
+    } else {
+      console.log('[RegisterPage] Registration failed');
     }
   };
 
@@ -332,77 +339,64 @@ export const RegisterPage: React.FC = () => {
 
               {/* Register Form */}
               <form onSubmit={handleSubmit(onSubmit)}>
-                <Stack spacing={3}>
-                  {/* Name Fields */}
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                    <Controller
-                      name="firstName"
-                      control={control}
-                      render={({ field }) => (
-                        <FormInput
-                          {...field}
-                          label="First Name"
-                          error={!!errors.firstName}
-                          helperText={errors.firstName?.message}
-                          placeholder="Enter your first name"
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              bgcolor: 'rgba(255, 255, 255, 0.05)',
-                              '& fieldset': {
-                                borderColor: 'rgba(99, 102, 241, 0.3)',
-                              },
-                              '&:hover fieldset': {
-                                borderColor: 'rgba(99, 102, 241, 0.5)',
-                              },
-                              '&.Mui-focused fieldset': {
-                                borderColor: theme.palette.primary.main,
-                              },
+                <Stack spacing={3}>                  {/* Name Field */}
+                  <Controller
+                    name="name"
+                    control={control}
+                    render={({ field }) => (
+                      <FormInput
+                        {...field}
+                        label="Full Name"
+                        error={!!errors.name}
+                        helperText={errors.name?.message}
+                        placeholder="Enter your full name"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            bgcolor: 'rgba(255, 255, 255, 0.05)',
+                            '& fieldset': {
+                              borderColor: 'rgba(99, 102, 241, 0.3)',
                             },
-                            '& .MuiInputLabel-root': {
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              '&.Mui-focused': {
-                                color: theme.palette.primary.main,
-                              },
+                            '&:hover fieldset': {
+                              borderColor: 'rgba(99, 102, 241, 0.5)',
                             },
-                          }}
-                        />
-                      )}
-                    />
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme.palette.primary.main,
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            '&.Mui-focused': {
+                              color: theme.palette.primary.main,
+                            },
+                          },                        }}
+                      />
+                    )}
+                  />
 
-                    <Controller
-                      name="lastName"
-                      control={control}
-                      render={({ field }) => (
-                        <FormInput
-                          {...field}
-                          label="Last Name"
-                          error={!!errors.lastName}
-                          helperText={errors.lastName?.message}
-                          placeholder="Enter your last name"
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              bgcolor: 'rgba(255, 255, 255, 0.05)',
-                              '& fieldset': {
-                                borderColor: 'rgba(99, 102, 241, 0.3)',
-                              },
-                              '&:hover fieldset': {
-                                borderColor: 'rgba(99, 102, 241, 0.5)',
-                              },
-                              '&.Mui-focused fieldset': {
-                                borderColor: theme.palette.primary.main,
-                              },
-                            },
-                            '& .MuiInputLabel-root': {
-                              color: 'rgba(255, 255, 255, 0.7)',
-                              '&.Mui-focused': {
-                                color: theme.palette.primary.main,
-                              },
-                            },
+                  {/* Avatar Upload */}
+                  <Controller
+                    name="avatar"
+                    control={control}
+                    render={({ field }) => (
+                      <Box>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            mb: 1, 
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            fontWeight: 500 
                           }}
+                        >
+                          Profile Picture (Optional)
+                        </Typography>
+                        <AvatarUpload
+                          value={field.value}
+                          onChange={field.onChange}
+                          disabled={isLoading}
                         />
-                      )}
-                    />
-                  </Stack>
+                      </Box>
+                    )}
+                  />
 
                   <Controller
                     name="email"
@@ -415,6 +409,41 @@ export const RegisterPage: React.FC = () => {
                         error={!!errors.email}
                         helperText={errors.email?.message}
                         placeholder="Enter your email"
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            bgcolor: 'rgba(255, 255, 255, 0.05)',
+                            '& fieldset': {
+                              borderColor: 'rgba(99, 102, 241, 0.3)',
+                            },
+                            '&:hover fieldset': {
+                              borderColor: 'rgba(99, 102, 241, 0.5)',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme.palette.primary.main,
+                            },
+                          },
+                          '& .MuiInputLabel-root': {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            '&.Mui-focused': {
+                              color: theme.palette.primary.main,
+                            },
+                          },                        }}
+                      />
+                    )}
+                  />
+
+                  <Controller
+                    name="bio"
+                    control={control}
+                    render={({ field }) => (
+                      <FormInput
+                        {...field}
+                        label="Bio (Optional)"
+                        multiline
+                        rows={3}
+                        error={!!errors.bio}
+                        helperText={errors.bio?.message || 'Tell us a bit about yourself (optional)'}
+                        placeholder="I'm an aspiring developer passionate about learning..."
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             bgcolor: 'rgba(255, 255, 255, 0.05)',

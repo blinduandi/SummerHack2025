@@ -5,6 +5,9 @@
 // API utilities
 export * from './api';
 
+// User Avatar component
+export { UserAvatar } from './UserAvatar';
+
 /**
  * Format date to readable string
  */

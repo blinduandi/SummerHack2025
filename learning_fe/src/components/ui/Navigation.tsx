@@ -9,7 +9,6 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Avatar,
   Chip,
   useMediaQuery,
   useTheme,
@@ -26,13 +25,15 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
+  Person as PersonIcon,
   Login as LoginIcon,
   PersonAdd as RegisterIcon,
   Logout as LogoutIcon,
   Home as HomeIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks';
-import { getInitials } from '../../utils';
+import { UserAvatar } from '../../utils';
+import { ThemeToggle } from './ThemeToggle';
 
 // Glass morphism styled AppBar
 const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
@@ -218,11 +219,13 @@ export const Navigation: React.FC = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
   const navigationItems = [
     { label: 'Home', path: '/', icon: <HomeIcon /> },
     ...(isAuthenticated 
-      ? [{ label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> }]
+      ? [
+          { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
+          { label: 'Profile', path: '/profile', icon: <PersonIcon /> }
+        ]
       : [
           { label: 'Login', path: '/login', icon: <LoginIcon /> },
           { label: 'Register', path: '/register', icon: <RegisterIcon /> },
@@ -423,26 +426,26 @@ export const Navigation: React.FC = () => {
                 >
                   {item.label}
                 </Button>
-              ))}
-            </Box>
+              ))}            </Box>
           )}
 
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {isAuthenticated && user && (
-            <Box sx={{ ml: 2 }}>
-              <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
-                <AvatarContainer>
-                  <Avatar sx={{ 
-                    bgcolor: 'transparent',
-                    color: '#818cf8',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem',
-                    width: 40,
-                    height: 40,
-                    background: `linear-gradient(135deg, ${alpha('#6366f1', 0.1)} 0%, ${alpha('#06b6d4', 0.05)} 100%)`,
-                    border: `1px solid ${alpha('#818cf8', 0.2)}`,
-                  }}>
-                    {user.name ? getInitials(user.name) : 'U'}
-                  </Avatar>
+            <Box sx={{ ml: 2 }}>              <IconButton onClick={handleUserMenuOpen} sx={{ p: 0 }}>
+                <AvatarContainer>                  <UserAvatar
+                    user={user}
+                    size={40}
+                    sx={{ 
+                      bgcolor: 'transparent',
+                      color: '#818cf8',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem',
+                      background: `linear-gradient(135deg, ${alpha('#6366f1', 0.1)} 0%, ${alpha('#06b6d4', 0.05)} 100%)`,
+                      border: `1px solid ${alpha('#818cf8', 0.2)}`,
+                    }}
+                  />
                 </AvatarContainer>
               </IconButton>
               <GlassMenu
@@ -462,10 +465,9 @@ export const Navigation: React.FC = () => {
                   </Typography>
                   <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.7), mt: 0.5 }}>
                     {user.email || 'No email'}
-                  </Typography>
-                  {user.role && (
+                  </Typography>                  {user.user_type && (
                     <Chip
-                      label={user.role.toUpperCase()}
+                      label={user.user_type.toUpperCase()}
                       size="small"
                       sx={{ 
                         mt: 1.5,
@@ -477,12 +479,17 @@ export const Navigation: React.FC = () => {
                       }}
                     />
                   )}
-                </Box>
-                <MenuItem 
+                </Box>                <MenuItem 
                   onClick={() => { navigate('/dashboard'); handleUserMenuClose(); }}
                 >
                   <DashboardIcon sx={{ mr: 1.5, color: '#06b6d4' }} />
                   Dashboard
+                </MenuItem>
+                <MenuItem 
+                  onClick={() => { navigate('/profile'); handleUserMenuClose(); }}
+                >
+                  <PersonIcon sx={{ mr: 1.5, color: '#6366f1' }} />
+                  Profile
                 </MenuItem>
                 <MenuItem 
                   onClick={handleLogout}

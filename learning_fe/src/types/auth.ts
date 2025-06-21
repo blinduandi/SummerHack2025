@@ -1,9 +1,14 @@
 export interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  role: 'student' | 'teacher';
-  language_preference: string;
+  user_type: 'student' | 'teacher' | null;
+  bio?: string | null;
+  avatar?: string | null;
+  skills?: any | null;
+  achievements?: any | null;
+  preferences?: any | null;
+  is_email_verified: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -18,8 +23,9 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   password_confirmation: string;
-  role: 'student' | 'teacher';
-  language_preference?: string;
+  user_type: 'student' | 'teacher';
+  bio?: string;
+  avatar?: string; // URL to uploaded avatar
 }
 
 export interface AuthTokens {
@@ -31,7 +37,8 @@ export interface AuthResponse {
   success: boolean;
   data?: {
     user: User;
-    token: string; // Laravel Sanctum returns a single token
+    access_token: string; // Laravel Sanctum returns access_token
+    token_type: string;
   };
   message?: string;
 }

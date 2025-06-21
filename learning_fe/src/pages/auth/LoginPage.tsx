@@ -220,13 +220,18 @@ export const LoginPage: React.FC = () => {
       email: '',
       password: '',
     },
-  });
-
-  const onSubmit = async (data: LoginFormData) => {
+  });  const onSubmit = async (data: LoginFormData) => {
+    console.log('[LoginPage] Login form submitted');
     clearError();
+    
     const success = await login(data.email, data.password);
+    console.log('[LoginPage] Login result:', success);
+    
     if (success) {
-      navigate('/dashboard');
+      console.log('[LoginPage] Login successful, will be redirected by ProtectedRoute');
+      // Don't manually navigate - let ProtectedRoute handle the redirect
+    } else {
+      console.log('[LoginPage] Login failed');
     }
   };
 

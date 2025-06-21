@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Backdrop } from '@mui/material';
+import { HashLoader } from 'react-spinners';
 import { useAuth } from '../../hooks';
 
 interface ProtectedRouteProps {
@@ -15,34 +16,39 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, isInitialized, isLoading } = useAuth();
   const location = useLocation();
 
-  // Show loading spinner while initializing auth
+  console.log('[ProtectedRoute]', {
+    requireAuth,
+    isAuthenticated,
+    isInitialized,
+    isLoading,
+    path: location.pathname
+  });
+
+  // Show loading while initializing
   if (!isInitialized || isLoading) {
     return (
-      <Box
+      <Backdrop
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          gap: 2,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          backdropFilter: 'blur(12px)',
         }}
+        open={true}
       >
-        <CircularProgress size={60} />
-        <Typography variant="body1" color="text.secondary">
-          Loading...
-        </Typography>
-      </Box>
+        <HashLoader color="#6366f1" loading={true} size={50} />
+      </Backdrop>
     );
   }
 
+  // If authentication is required and user is not authenticated, redirect to login
   if (requireAuth && !isAuthenticated) {
-    // Redirect to login with the current location as the return URL
+    console.log('[ProtectedRoute] Redirecting to login - auth required but not authenticated');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // If authentication is not required (login/register pages) and user is authenticated, redirect to dashboard
   if (!requireAuth && isAuthenticated) {
-    // If user is authenticated and trying to access login/register, redirect to dashboard
+    console.log('[ProtectedRoute] Redirecting to dashboard - user already authenticated');
     return <Navigate to="/dashboard" replace />;
   }
 

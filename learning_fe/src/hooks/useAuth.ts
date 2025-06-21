@@ -3,7 +3,7 @@ import { useAuthStore } from '../store';
 import { AuthAPI } from '../services/api';
 
 /**
- * Hook for handling authentication logic
+ * Simplified authentication hook that works with Laravel Sanctum API
  */
 export const useAuth = () => {
   const {
@@ -12,8 +12,8 @@ export const useAuth = () => {
     isAuthenticated,
     isLoading,
     error,
-    login,
-    logout,
+    login: setAuthState,
+    logout: clearAuthState,
     setLoading,
     setError,
     clearError,
@@ -21,59 +21,77 @@ export const useAuth = () => {
 
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize auth state on app start
+  // Simple initialization
   useEffect(() => {
-    const initializeAuth = async () => {
-      if (tokens?.accessToken && !user) {
-        setLoading(true);
-        try {
-          const response = await AuthAPI.getProfile();
-          if (response.success && response.data) {
-            login(response.data, tokens);
-          } else {
-            logout();
-          }
-        } catch (error) {
-          logout();
-        } finally {
-          setLoading(false);
-        }
-      }
-      setIsInitialized(true);
-    };
+    console.log('[useAuth] Initializing...', { hasUser: !!user, hasTokens: !!tokens?.accessToken });
+    
+    // If we have user and tokens from persistence, we're authenticated
+    if (user && tokens?.accessToken) {
+      console.log('[useAuth] Found persisted auth data, user is authenticated');
+    } else if (tokens?.accessToken && !user) {
+      // Clear orphaned tokens
+      console.log('[useAuth] Found orphaned tokens, clearing auth state');
+      clearAuthState();
+    }
+    
+    setIsInitialized(true);
+  }, []);
 
-    initializeAuth();
-  }, [tokens, user, login, logout, setLoading]);
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
+    console.log('[useAuth] Starting login for:', email);
     setLoading(true);
     clearError();
 
     try {
       const response = await AuthAPI.login({ email, password });
-      
-      if (response.success && response.data?.data) {
-        // Extract user and token from Laravel response
-        const user = response.data.data.user;
-        const tokens = { accessToken: response.data.data.token };
-        login(user, tokens);
+      console.log('[useAuth] Full login response:', JSON.stringify(response, null, 2));
+
+      // Check if the API call was successful and we have the expected data
+      if (response.success && response.data?.data?.user && response.data?.data?.access_token) {
+        const userData = response.data.data.user;
+        const accessToken = response.data.data.access_token;
+        
+        console.log('[useAuth] Login successful!');
+        console.log('[useAuth] User data:', userData);
+        console.log('[useAuth] Access token:', accessToken);
+        
+        // Set the authentication state
+        setAuthState(userData, { accessToken });
+        
+        console.log('[useAuth] Auth state has been set');
         return true;
       } else {
-        setError(response.error?.message || 'Login failed');
+        console.log('[useAuth] Login failed - unexpected response structure');
+        console.log('[useAuth] Expected: response.success && response.data.data.user && response.data.data.access_token');
+        console.log('[useAuth] Got:', {
+          success: response.success,
+          hasData: !!response.data,
+          hasDataData: !!response.data?.data,
+          hasUser: !!response.data?.data?.user,
+          hasAccessToken: !!response.data?.data?.access_token
+        });
+        
+        setError(response.data?.message || 'Login failed');
         return false;
       }
-    } catch (error) {
-      setError('An unexpected error occurred');
+    } catch (error: any) {
+      console.log('[useAuth] Login error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+      setError(errorMessage);
       return false;
     } finally {
       setLoading(false);
     }
-  };  const handleRegister = async (
+  };
+
+  const handleRegister = async (
     email: string,
     password: string,
     name: string,
-    role: 'student' | 'teacher' = 'student',
-    language_preference: string = 'en'
+    user_type: 'student' | 'teacher' = 'student',
+    bio?: string
   ): Promise<boolean> => {
+    console.log('[useAuth] Starting registration for:', email, name);
     setLoading(true);
     clearError();
 
@@ -83,22 +101,33 @@ export const useAuth = () => {
         email,
         password,
         password_confirmation: password,
-        role,
-        language_preference,
+        user_type,
+        bio: bio || undefined,
       });
       
-      if (response.success && response.data?.data) {
-        // Extract user and token from Laravel response
-        const user = response.data.data.user;
-        const tokens = { accessToken: response.data.data.token };
-        login(user, tokens);
+      console.log('[useAuth] Full registration response:', JSON.stringify(response, null, 2));
+
+      if (response.success && response.data?.data?.user && response.data?.data?.access_token) {
+        const userData = response.data.data.user;
+        const accessToken = response.data.data.access_token;
+        
+        console.log('[useAuth] Registration successful!');
+        console.log('[useAuth] User data:', userData);
+        console.log('[useAuth] Access token:', accessToken);
+        
+        setAuthState(userData, { accessToken });
+        
+        console.log('[useAuth] Auth state has been set');
         return true;
       } else {
-        setError(response.error?.message || 'Registration failed');
+        console.log('[useAuth] Registration failed - unexpected response structure');
+        setError(response.data?.message || 'Registration failed');
         return false;
       }
-    } catch (error) {
-      setError('An unexpected error occurred');
+    } catch (error: any) {
+      console.log('[useAuth] Registration error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+      setError(errorMessage);
       return false;
     } finally {
       setLoading(false);
@@ -110,9 +139,9 @@ export const useAuth = () => {
     try {
       await AuthAPI.logout();
     } catch (error) {
-      // Continue with logout even if API call fails
+      console.log('[useAuth] Logout API error (continuing anyway):', error);
     } finally {
-      logout();
+      clearAuthState();
       setLoading(false);
     }
   };

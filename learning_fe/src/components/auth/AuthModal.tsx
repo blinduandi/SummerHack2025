@@ -401,14 +401,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onClose, initialTab 
                           }}
                         />
                       )}
-                    />                    <StyledLoadingButton
-                      type="submit"
+                    />                    <StyledLoadingButton                      type="submit"
                       variant="contained"
                       size="large"
                       loading={isLoading}
                       disabled={!loginForm.formState.isValid}
                       fullWidth
-                      useBarLoader
                       loadingText="Signing in..."
                     >
                       Sign In
@@ -548,13 +546,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onClose, initialTab 
                           </Typography>
                         </UserTypeButton>                      </Stack>
                     </Box>                    <StyledLoadingButton
-                      type="submit"
-                      variant="contained"
+                      type="submit"                      variant="contained"
                       size="large"
                       loading={isLoading}
                       disabled={!registerForm.formState.isValid}
                       fullWidth
-                      useBarLoader
                       loadingText="Creating account..."
                     >
                       Create Account

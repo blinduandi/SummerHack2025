@@ -1,17 +1,15 @@
 import React from 'react';
 import {
   Button,
-  CircularProgress,
   Box,
   styled,
 } from '@mui/material';
 import type { ButtonProps } from '@mui/material';
-import { BarLoader } from 'react-spinners';
+import { HashLoader } from 'react-spinners';
 
 interface LoadingButtonProps extends ButtonProps {
   loading?: boolean;
   loadingText?: string;
-  useBarLoader?: boolean;
 }
 
 const StyledButton = styled(Button)(() => ({
@@ -27,15 +25,13 @@ export const LoadingButton: React.FC<LoadingButtonProps> = ({
   loadingText,
   children,
   disabled,
-  useBarLoader = false,
   ...props
 }) => {
   return (
     <StyledButton
       {...props}
       disabled={disabled || loading}
-    >
-      {/* Loading Overlay */}
+    >      {/* Loading Overlay */}
       {loading && (
         <Box
           sx={{
@@ -47,25 +43,19 @@ export const LoadingButton: React.FC<LoadingButtonProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(2px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderRadius: 'inherit',
             zIndex: 1,
           }}
         >
-          {useBarLoader ? (
-            <BarLoader
-              color="currentColor"
-              loading={loading}
-              width={60}
-              height={3}
-              speedMultiplier={1.2}
-            />
-          ) : (
-            <CircularProgress
-              size={20}
-              sx={{ color: 'inherit' }}
-            />
-          )}
+          <HashLoader
+            color="#6366f1"
+            loading={loading}
+            size={20}
+            speedMultiplier={1.5}
+          />
         </Box>
       )}
       

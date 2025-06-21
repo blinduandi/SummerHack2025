@@ -1,16 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Box } from '@mui/material';
-import { theme } from './theme';
-import { Layout, ProtectedRoute, ErrorBoundary, LoadingOverlay } from './components';
-import { LoginPage, RegisterPage, DashboardPage, LandingPage } from './pages';
-import { useAuth } from './hooks';
+import { CssBaseline, Box } from '@mui/material';
+import { ThemeProvider } from './theme/ThemeProvider';
+import { Layout, ProtectedRoute, ErrorBoundary } from './components';
+import { LoginPage, RegisterPage, DashboardPage, LandingPage, ProfilePage } from './pages';
 
-function App() {
-  const { isLoading } = useAuth();
-
-  return (
+function App() {  return (
     <ErrorBoundary>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider>
         <CssBaseline />
         <Box sx={{ minHeight: '100vh', width: '100%' }}>
           <Router>
@@ -45,9 +41,7 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             }
-          />
-
-          {/* Protected Routes with Navigation */}
+          />          {/* Protected Routes with Navigation */}
           <Route
             path="/dashboard"
             element={
@@ -58,17 +52,23 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />        </Routes>
-      </Router>
-    </Box>
-    
-    {/* Global Loading Overlay */}
-    <LoadingOverlay open={isLoading} message="Please wait..." />
-  </ThemeProvider>
-</ErrorBoundary>
-);
+          {/* Catch all route */}<Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>        </Box>
+      </ThemeProvider>
+    </ErrorBoundary>
+  );
 }
 
 export default App;
