@@ -54,12 +54,17 @@ class User extends Authenticatable
     // Helper methods for roles
     public function isTeacher(): bool
     {
-        return true;
+        return $this->role === 'teacher';
     }
 
     public function isStudent(): bool
     {
         return $this->role === 'student';
+    }
+
+    public function isONG(): bool
+    {
+        return $this->role === 'ong';
     }
 
     // Relationships
