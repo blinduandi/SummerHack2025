@@ -113,15 +113,15 @@ class OngProjectController extends Controller
                     $app->update(['status' => 'rejected']);
                 }
                 $user = $app->user;
-                if ($user && $user->telegram_chat_id) {
+                if ($user) {
                     if ($app->id == $application->id) {
                         $this->telegram->sendMessage(
-                            $user->telegram_chat_id,
+                            // $user->telegram_chat_id,
                             "Congratulations! Your project submission for '{$project->title}' was selected as the winner!"
                         );
                     } else {
                         $this->telegram->sendMessage(
-                            $user->telegram_chat_id,
+                            // $user->telegram_chat_id,
                             "Thank you for participating in '{$project->title}'. Unfortunately, your project was not selected."
                         );
                     }

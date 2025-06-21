@@ -95,3 +95,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('ong-projects/{project}/submit', [OngProjectController::class, 'submit']);
     Route::post('ong-projects/{project}/applications/{application}/select-winner', [OngProjectController::class, 'selectWinner']);
 });
+
+// Add a test route for Telegram
+Route::get('/test-telegram', function () {
+    $chatId = '<YOUR_TELEGRAM_CHAT_ID>'; // Replace with your actual chat ID
+    $result = app(\App\Services\TelegramBotService::class)->sendMessage($chatId, 'Test message from Laravel TelegramBotService!');
+    return response()->json(['result' => $result->json()]);
+});
