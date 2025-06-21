@@ -78,7 +78,7 @@ class CourseStepController extends Controller
         }
 
         $step = CourseStep::create([
-            ...$request->validated(),
+            ...$validator->validated(),
             'course_id' => $course->id,
         ]);
 
@@ -128,7 +128,7 @@ class CourseStepController extends Controller
             ], 422);
         }
 
-        $step->update($request->validated());
+        $step->update($validator->validated());
         $step->load('course');
 
         return response()->json([

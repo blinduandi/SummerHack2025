@@ -92,13 +92,17 @@ class CourseController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation errors',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
+                'input' => $request->all()
             ], 422);
         }
 
+        // Get validated data from validator
+        $validatedData = $validator->validated();
+
         // If program_id is provided, check if user owns the program
-        if ($request->program_id) {
-            $program = Program::find($request->program_id);
+        if (isset($validatedData['program_id'])) {
+            $program = Program::find($validatedData['program_id']);
             if ($program && $program->created_by !== $request->user()->id) {
                 return response()->json([
                     'success' => false,
@@ -107,10 +111,15 @@ class CourseController extends Controller
             }
         }
 
-        $course = Course::create([
-            ...$request->validated(),
+        // Add default values for fields that might not be present
+        $courseData = array_merge([
+            'is_active' => true,
+            'order_in_program' => 0,
+        ], $validatedData, [
             'created_by' => $request->user()->id,
         ]);
+
+        $course = Course::create($courseData);
 
         $course->load(['creator', 'programmingLanguage', 'program']);
 
@@ -150,7 +159,7 @@ class CourseController extends Controller
             ], 422);
         }
 
-        $course->update($request->validated());
+        $course->update($validator->validated());
         $course->load(['creator', 'programmingLanguage', 'program']);
 
         return response()->json([
