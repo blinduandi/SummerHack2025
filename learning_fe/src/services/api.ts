@@ -97,19 +97,23 @@ export class AuthAPI {  /**
         success: false,
       };
     }
-  }
-
-  /**
+  }  /**
    * Login user with email and password
    */
   static async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response: AxiosResponse<AuthResponse> = await api.post('/auth/login', credentials);
+      const response: AxiosResponse<AuthResponse> = await api.post('/auth/login', {
+        email: credentials.email,
+        password: credentials.password,
+      });
+      
+      log('Login successful:', response.data);
       return {
         data: response.data,
         success: true,
       };
     } catch (error: any) {
+      log('Login failed:', error);
       return {
         error: {
           message: error.response?.data?.message || 'Login failed',
@@ -126,16 +130,74 @@ export class AuthAPI {  /**
    */
   static async register(credentials: RegisterCredentials): Promise<ApiResponse<AuthResponse>> {
     try {
-      const response: AxiosResponse<AuthResponse> = await api.post('/auth/register', credentials);
+      const response: AxiosResponse<AuthResponse> = await api.post('/auth/register', {
+        name: credentials.name,
+        email: credentials.email,
+        password: credentials.password,
+        password_confirmation: credentials.password_confirmation,
+        role: credentials.role,
+        language_preference: credentials.language_preference || 'en',
+      });
+      
+      log('Registration successful:', response.data);
       return {
         data: response.data,
         success: true,
       };
     } catch (error: any) {
+      log('Registration failed:', error);
       return {
         error: {
           message: error.response?.data?.message || 'Registration failed',
           code: error.response?.data?.code || 'REGISTRATION_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  static async logout(): Promise<ApiResponse<any>> {
+    try {
+      const response = await api.post('/auth/logout');
+      log('Logout successful');
+      return {
+        data: response.data,
+        success: true,
+      };
+    } catch (error: any) {
+      log('Logout failed:', error);
+      return {
+        error: {
+          message: error.response?.data?.message || 'Logout failed',
+          code: error.response?.data?.code || 'LOGOUT_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get user profile
+   */
+  static async getProfile(): Promise<ApiResponse<User>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: User }> = await api.get('/auth/profile');
+      log('Profile fetch successful:', response.data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      log('Profile fetch failed:', error);
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch profile',
+          code: error.response?.data?.code || 'PROFILE_ERROR',
           status: error.response?.status || 500,
         },
         success: false,

@@ -1,3 +1,15 @@
+/* Hide scrollbars globally */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* WebKit browsers */
+  width: 0;
+  height: 0;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

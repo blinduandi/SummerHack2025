@@ -35,7 +35,7 @@ import { useAuth } from '../../hooks';
 import { getInitials } from '../../utils';
 
 // Glass morphism styled AppBar
-const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
+const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ theme, scrolled }) => ({
   backgroundColor: scrolled 
     ? alpha('#0a0a0a', 0.95)
     : alpha('#0a0a0a', 0.85),
@@ -74,7 +74,7 @@ const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
 }));
 
 // Glass morphism styled Menu
-const GlassMenu = styled(Menu)(() => ({
+const GlassMenu = styled(Menu)(({ theme }) => ({
   '& .MuiPaper-root': {
     backgroundColor: alpha('#0a0a0a', 0.9),
     backdropFilter: 'blur(20px)',
@@ -114,7 +114,7 @@ const GlassMenu = styled(Menu)(() => ({
 }));
 
 // Glass morphism styled Drawer
-const GlassDrawer = styled(Drawer)(() => ({
+const GlassDrawer = styled(Drawer)(({ theme }) => ({
   '& .MuiDrawer-paper': {
     backgroundColor: alpha('#0a0a0a', 0.95),
     backdropFilter: 'blur(20px)',
@@ -144,12 +144,82 @@ const GlassDrawer = styled(Drawer)(() => ({
   },
 }));
 
-// Glass button styling - removed, using inline styles instead
+// Glass button styling
+const GlassButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  padding: '8px 16px',
+  textTransform: 'none',
+  fontWeight: 500,
+  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  overflow: 'hidden',
+  backgroundColor: alpha('#ffffff', 0.03),
+  border: `1px solid ${alpha('#ffffff', 0.08)}`,
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: `linear-gradient(135deg, ${alpha('#ffffff', 0.1)} 0%, ${alpha('#6366f1', 0.05)} 100%)`,
+    borderRadius: 'inherit',
+    opacity: 0,
+    transition: 'opacity 0.2s ease',
+  },
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    backgroundColor: alpha('#ffffff', 0.08),
+    boxShadow: `0 8px 25px ${alpha('#6366f1', 0.2)}`,
+    '&::before': {
+      opacity: 1,
+    },
+  },
+  '&.active': {
+    backgroundColor: alpha('#6366f1', 0.15),
+    color: '#818cf8',
+    border: `1px solid ${alpha('#818cf8', 0.3)}`,
+    boxShadow: `0 4px 16px ${alpha('#6366f1', 0.3)}`,
+  },
+}));
 
-// Logo with glass effect - removed, using inline styles instead;
+// Logo with glass effect
+const LogoBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '12px',
+  padding: '10px 16px',
+  borderRadius: 14,
+  background: `linear-gradient(135deg, ${alpha('#6366f1', 0.12)} 0%, ${alpha('#06b6d4', 0.08)} 100%)`,
+  border: `1px solid ${alpha('#ffffff', 0.12)}`,
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  textDecoration: 'none',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: `linear-gradient(45deg, ${alpha('#ffffff', 0.1)} 0%, transparent 100%)`,
+    opacity: 0,
+    transition: 'opacity 0.3s ease',
+  },
+  '&:hover': {
+    transform: 'translateY(-2px) scale(1.02)',
+    boxShadow: `0 12px 40px ${alpha('#6366f1', 0.3)}`,
+    '&::before': {
+      opacity: 1,
+    },
+  },
+}));
 
 // Glass avatar container
-const AvatarContainer = styled(Box)(() => ({
+const AvatarContainer = styled(Box)(({ theme }) => ({
   padding: '3px',
   borderRadius: '50%',
   background: `linear-gradient(135deg, ${alpha('#6366f1', 0.2)} 0%, ${alpha('#06b6d4', 0.15)} 100%)`,
@@ -267,15 +337,16 @@ export const Navigation: React.FC = () => {
             </ListItemIcon>
             <ListItemText primary={item.label} />
           </ListItem>
-        ))}        {isAuthenticated && (
+        ))}
+        {isAuthenticated && (
           <ListItem 
-            onClick={logoutLoading || isLoading ? undefined : handleLogout} 
+            onClick={handleLogout} 
+            disabled={logoutLoading || isLoading}
             sx={{ 
-              cursor: logoutLoading || isLoading ? 'default' : 'pointer',
+              cursor: 'pointer',
               color: logoutLoading ? alpha('#ffffff', 0.5) : '#ffffff',
-              opacity: logoutLoading || isLoading ? 0.5 : 1,
               '&:hover': {
-                backgroundColor: logoutLoading || isLoading ? 'transparent' : alpha('#ef4444', 0.1),
+                backgroundColor: alpha('#ef4444', 0.1),
               },
             }}
           >
@@ -314,43 +385,7 @@ export const Navigation: React.FC = () => {
             </IconButton>
           )}
           
-          <Box
-            component={RouterLink} 
-            to="/"
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              padding: '10px 16px',
-              borderRadius: 14,
-              background: `linear-gradient(135deg, ${alpha('#6366f1', 0.12)} 0%, ${alpha('#06b6d4', 0.08)} 100%)`,
-              border: `1px solid ${alpha('#ffffff', 0.12)}`,
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              textDecoration: 'none',
-              position: 'relative',
-              overflow: 'hidden',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: `linear-gradient(45deg, ${alpha('#ffffff', 0.1)} 0%, transparent 100%)`,
-                opacity: 0,
-                transition: 'opacity 0.3s ease',
-              },
-              '&:hover': {
-                transform: 'translateY(-2px) scale(1.02)',
-                boxShadow: `0 12px 40px ${alpha('#6366f1', 0.3)}`,
-                '&::before': {
-                  opacity: 1,
-                },
-              },
-            }}
-          >
+          <LogoBox component={RouterLink} to="/">
             <Typography
               variant="h6"
               sx={{
@@ -363,8 +398,9 @@ export const Navigation: React.FC = () => {
                 letterSpacing: '0.5px',
               }}
             >
-              EduFlow            </Typography>
-          </Box>
+              EduFlow
+            </Typography>
+          </LogoBox>
 
           <Box sx={{ flexGrow: 1 }} />
 
@@ -378,51 +414,23 @@ export const Navigation: React.FC = () => {
                   }
                   return true;
                 })
-                .map((item) => (                <Button
+                .map((item) => (
+                <GlassButton
                   key={item.path}
                   color="inherit"
                   component={RouterLink}
                   to={item.path}
                   startIcon={item.icon}
+                  className={location.pathname === item.path ? 'active' : ''}
                   sx={{ 
-                    borderRadius: 12,
-                    padding: '8px 16px',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    backgroundColor: location.pathname === item.path ? alpha('#6366f1', 0.15) : alpha('#ffffff', 0.03),
-                    border: `1px solid ${location.pathname === item.path ? alpha('#818cf8', 0.3) : alpha('#ffffff', 0.08)}`,
-                    color: location.pathname === item.path ? '#818cf8' : 'inherit',
                     fontSize: '0.875rem',
                     px: 2,
                     py: 1,
-                    boxShadow: location.pathname === item.path ? `0 4px 16px ${alpha('#6366f1', 0.3)}` : 'none',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: `linear-gradient(135deg, ${alpha('#ffffff', 0.1)} 0%, ${alpha('#6366f1', 0.05)} 100%)`,
-                      borderRadius: 'inherit',
-                      opacity: 0,
-                      transition: 'opacity 0.2s ease',
-                    },
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      backgroundColor: alpha('#ffffff', 0.08),
-                      boxShadow: `0 8px 25px ${alpha('#6366f1', 0.2)}`,
-                      '&::before': {
-                        opacity: 1,
-                      },
-                    },
+                    fontWeight: 500,
                   }}
                 >
                   {item.label}
-                </Button>
+                </GlassButton>
               ))}
             </Box>
           )}

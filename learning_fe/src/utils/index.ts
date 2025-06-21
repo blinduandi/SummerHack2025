@@ -84,6 +84,19 @@ export const capitalize = (str: string): string => {
 /**
  * Get initials from name
  */
-export const getInitials = (firstName: string, lastName: string): string => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+export const getInitials = (name: string | undefined | null): string => {
+  if (!name || typeof name !== 'string') {
+    return 'U'; // Default to 'U' for User if name is undefined/null
+  }
+  
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    return 'U'; // Default to 'U' if name is empty after trimming
+  }
+  
+  const names = trimmedName.split(' ');
+  if (names.length >= 2) {
+    return `${names[0].charAt(0)}${names[names.length - 1].charAt(0)}`.toUpperCase();
+  }
+  return names[0].charAt(0).toUpperCase();
 };

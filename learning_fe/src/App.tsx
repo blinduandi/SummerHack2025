@@ -1,17 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box } from '@mui/material';
 import { theme } from './theme';
-import { Layout, ProtectedRoute, ApiStatus } from './components';
+import { Layout, ProtectedRoute, ErrorBoundary, LoadingOverlay } from './components';
 import { LoginPage, RegisterPage, DashboardPage, LandingPage } from './pages';
+import { useAuth } from './hooks';
 
 function App() {
+  const { isLoading } = useAuth();
+
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ minHeight: '100vh', width: '100%' }}>
-        <ApiStatus />
-        <Router>
-          <Routes>
+    <ErrorBoundary>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ minHeight: '100vh', width: '100%' }}>
+          <Router>
+            <Routes>
           {/* Public Routes with Navigation */}
           <Route
             path="/"
@@ -57,11 +60,14 @@ function App() {
           />
 
           {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+          <Route path="*" element={<Navigate to="/" replace />} />        </Routes>
       </Router>
     </Box>
+    
+    {/* Global Loading Overlay */}
+    <LoadingOverlay open={isLoading} message="Please wait..." />
   </ThemeProvider>
+</ErrorBoundary>
 );
 }
 
