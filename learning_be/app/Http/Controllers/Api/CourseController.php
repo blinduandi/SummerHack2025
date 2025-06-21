@@ -13,14 +13,9 @@ class CourseController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Course::with(['creator', 'programmingLanguage', 'program'])
+        $query = Course::with(['creator', 'programmingLanguage'])
             ->active()
             ->latest();
-
-        // Filter by program
-        if ($request->has('program_id')) {
-            $query->where('program_id', $request->program_id);
-        }
 
         // Filter by programming language
         if ($request->has('language_id')) {
@@ -43,22 +38,40 @@ class CourseController extends Controller
 
         $courses = $query->paginate($request->get('per_page', 15));
 
+        // Add enrollment information for authenticated user
+        if ($request->user()) {
+            $userId = $request->user()->id;
+            $courses->getCollection()->transform(function ($course) use ($userId) {
+                $enrollment = $course->getUserEnrollment($userId);
+                $course->is_enrolled = !is_null($enrollment);
+                $course->enrollment = $enrollment;
+                return $course;
+            });
+        }
+
         return response()->json([
             'success' => true,
             'data' => $courses
         ]);
     }
 
-    public function show(Course $course): JsonResponse
+    public function show(Request $request, Course $course): JsonResponse
     {
         $course->load([
             'creator',
             'programmingLanguage',
-            'program',
             'steps' => function($query) {
                 $query->active()->ordered();
             }
         ]);
+
+        // Add enrollment information for authenticated user
+        if ($request->user()) {
+            $userId = $request->user()->id;
+            $enrollment = $course->getUserEnrollment($userId);
+            $course->is_enrolled = !is_null($enrollment);
+            $course->enrollment = $enrollment;
+        }
 
         return response()->json([
             'success' => true,
@@ -82,8 +95,6 @@ class CourseController extends Controller
             'content' => 'nullable|string',
             'difficulty_level' => 'required|in:beginner,intermediate,advanced',
             'estimated_duration_hours' => 'nullable|integer|min:1',
-            'order_in_program' => 'nullable|integer|min:0',
-            'program_id' => 'nullable|exists:programs,id',
             'programming_language_id' => 'nullable|exists:programming_languages,id',
             'is_active' => 'boolean',
         ]);
@@ -100,28 +111,16 @@ class CourseController extends Controller
         // Get validated data from validator
         $validatedData = $validator->validated();
 
-        // If program_id is provided, check if user owns the program
-        if (isset($validatedData['program_id'])) {
-            $program = Program::find($validatedData['program_id']);
-            if ($program && $program->created_by !== $request->user()->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You can only add courses to your own programs'
-                ], 403);
-            }
-        }
-
         // Add default values for fields that might not be present
         $courseData = array_merge([
             'is_active' => true,
-            'order_in_program' => 0,
         ], $validatedData, [
             'created_by' => $request->user()->id,
         ]);
 
         $course = Course::create($courseData);
 
-        $course->load(['creator', 'programmingLanguage', 'program']);
+        $course->load(['creator', 'programmingLanguage']);
 
         return response()->json([
             'success' => true,
@@ -146,7 +145,6 @@ class CourseController extends Controller
             'content' => 'sometimes|nullable|string',
             'difficulty_level' => 'sometimes|in:beginner,intermediate,advanced',
             'estimated_duration_hours' => 'sometimes|nullable|integer|min:1',
-            'order_in_program' => 'sometimes|nullable|integer|min:0',
             'programming_language_id' => 'sometimes|nullable|exists:programming_languages,id',
             'is_active' => 'sometimes|boolean',
         ]);
@@ -160,7 +158,7 @@ class CourseController extends Controller
         }
 
         $course->update($validator->validated());
-        $course->load(['creator', 'programmingLanguage', 'program']);
+        $course->load(['creator', 'programmingLanguage']);
 
         return response()->json([
             'success' => true,
@@ -184,6 +182,113 @@ class CourseController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Course deleted successfully'
+        ]);
+    }
+
+    public function myEnrolledCourses(Request $request): JsonResponse
+    {
+        if (!$request->user()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
+
+        $userId = $request->user()->id;
+
+        $query = Course::with(['creator', 'programmingLanguage'])
+            ->whereHas('enrollments', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->active()
+            ->latest();
+
+        // Filter by programming language
+        if ($request->has('language_id')) {
+            $query->byLanguage($request->language_id);
+        }
+
+        // Filter by difficulty
+        if ($request->has('difficulty')) {
+            $query->byDifficulty($request->difficulty);
+        }
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $courses = $query->paginate($request->get('per_page', 15));
+
+        // Add enrollment information
+        $courses->getCollection()->transform(function ($course) use ($userId) {
+            $enrollment = $course->getUserEnrollment($userId);
+            $course->is_enrolled = true; // Always true for this endpoint
+            $course->enrollment = $enrollment;
+            return $course;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'My enrolled courses retrieved successfully',
+            'data' => $courses
+        ]);
+    }
+
+    public function availableCourses(Request $request): JsonResponse
+    {
+        if (!$request->user()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
+
+        $userId = $request->user()->id;
+
+        $query = Course::with(['creator', 'programmingLanguage'])
+            ->whereDoesntHave('enrollments', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->active()
+            ->latest();
+
+        // Filter by programming language
+        if ($request->has('language_id')) {
+            $query->byLanguage($request->language_id);
+        }
+
+        // Filter by difficulty
+        if ($request->has('difficulty')) {
+            $query->byDifficulty($request->difficulty);
+        }
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $courses = $query->paginate($request->get('per_page', 15));
+
+        // Add enrollment information
+        $courses->getCollection()->transform(function ($course) use ($userId) {
+            $course->is_enrolled = false; // Always false for this endpoint
+            $course->enrollment = null;
+            return $course;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Available courses retrieved successfully',
+            'data' => $courses
         ]);
     }
 }

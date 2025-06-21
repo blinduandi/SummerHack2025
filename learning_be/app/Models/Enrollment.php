@@ -12,15 +12,23 @@ class Enrollment extends Model
 
     protected $fillable = [
         'user_id',
-        'program_id',
+        'course_id',
         'enrolled_at',
         'completed_at',
         'status',
+        'github_repository_url',
+        'github_repository_name',
+        'code_analysis_data',
+        'code_quality_score',
+        'last_analysis_at',
     ];
 
     protected $casts = [
         'enrolled_at' => 'datetime',
         'completed_at' => 'datetime',
+        'code_analysis_data' => 'array',
+        'code_quality_score' => 'decimal:2',
+        'last_analysis_at' => 'datetime',
     ];
 
     // Relationships
@@ -29,9 +37,9 @@ class Enrollment extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function program(): BelongsTo
+    public function course(): BelongsTo
     {
-        return $this->belongsTo(Program::class);
+        return $this->belongsTo(Course::class);
     }
 
     // Scopes

@@ -14,12 +14,13 @@ class Course extends Model
     protected $fillable = [
         'title',
         'description',
+        'poster',
+        'thumbnail',
         'content',
-        'difficulty_level',
+        'category',
+        'difficulty',
         'estimated_duration_hours',
-        'order_in_program',
         'is_active',
-        'program_id',
         'programming_language_id',
         'created_by',
     ];
@@ -27,15 +28,9 @@ class Course extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'estimated_duration_hours' => 'integer',
-        'order_in_program' => 'integer',
     ];
 
     // Relationships
-    public function program(): BelongsTo
-    {
-        return $this->belongsTo(Program::class);
-    }
-
     public function programmingLanguage(): BelongsTo
     {
         return $this->belongsTo(ProgrammingLanguage::class);
@@ -71,6 +66,23 @@ class Course extends Model
         return $this->hasMany(CourseRecommendation::class);
     }
 
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class);
+    }
+
+    // Helper method to check if a user is enrolled
+    public function isUserEnrolled($userId): bool
+    {
+        return $this->enrollments()->where('user_id', $userId)->exists();
+    }
+
+    // Helper method to get user's enrollment if exists
+    public function getUserEnrollment($userId)
+    {
+        return $this->enrollments()->where('user_id', $userId)->first();
+    }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -79,7 +91,7 @@ class Course extends Model
 
     public function scopeByDifficulty($query, $difficulty)
     {
-        return $query->where('difficulty_level', $difficulty);
+        return $query->where('difficulty', $difficulty);
     }
 
     public function scopeByLanguage($query, $languageId)

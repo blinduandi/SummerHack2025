@@ -15,20 +15,29 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             ProgrammingLanguageSeeder::class,
+            ComplexCourseSeeder::class,
+            BasicCoursesSeeder::class,
+            AdditionalCoursesSeeder::class,
         ]);
 
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test Teacher',
-            'email' => 'teacher@example.com',
-            'role' => 'teacher',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'teacher@example.com'],
+            [
+                'name' => 'Test Teacher',
+                'role' => 'teacher',
+                'password' => bcrypt('password')
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test Student',
-            'email' => 'student@example.com',
-            'role' => 'student',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'student@example.com'],
+            [
+                'name' => 'Test Student',
+                'role' => 'student',
+                'password' => bcrypt('password')
+            ]
+        );
     }
 }

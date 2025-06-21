@@ -22,6 +22,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'avatar',
         'password',
         'role',
         'language_preference',
@@ -62,11 +63,6 @@ class User extends Authenticatable
     }
 
     // Relationships
-    public function createdPrograms(): HasMany
-    {
-        return $this->hasMany(Program::class, 'created_by');
-    }
-
     public function createdCourses(): HasMany
     {
         return $this->hasMany(Course::class, 'created_by');

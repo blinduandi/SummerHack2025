@@ -1,0 +1,1222 @@
+{
+	"info": {
+		"_postman_id": "learning-platform-coderabbit",
+		"name": "Laravel Learning Platform - CodeRabbit Integration",
+		"description": "Complete API collection for testing the Laravel Learning Platform with GitHub and CodeRabbit integration features",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"role\": \"student\",\n    \"language_preference\": \"en\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"AUTH_TOKEN\", jsonData.data.token);",
+									"    pm.environment.set(\"USER_ID\", jsonData.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/auth/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Courses",
+			"item": [				{
+					"name": "List Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response includes enrollment information\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        var course = jsonData.data.data[0];",
+									"        pm.expect(course).to.have.property('is_enrolled');",
+									"        console.log('First course enrollment status:', course.is_enrolled);",
+									"        if (course.is_enrolled) {",
+									"            pm.expect(course).to.have.property('enrollment');",
+									"            console.log('Enrollment details:', course.enrollment);",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"COURSE_ID\", jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"JavaScript Fundamentals with CodeRabbit\",\n    \"description\": \"Learn JavaScript basics with automated code quality analysis\",\n    \"content\": \"This course covers JavaScript fundamentals and includes GitHub integration for code analysis.\",\n    \"difficulty_level\": \"beginner\",\n    \"estimated_duration_hours\": 40,\n    \"programming_language_id\": 1,\n    \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},				{
+					"name": "Get Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Course includes enrollment information\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var course = jsonData.data;",
+									"    pm.expect(course).to.have.property('is_enrolled');",
+									"    console.log('Course enrollment status:', course.is_enrolled);",
+									"    if (course.is_enrolled) {",
+									"        pm.expect(course).to.have.property('enrollment');",
+									"        console.log('Enrollment details:', JSON.stringify(course.enrollment, null, 2));",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"{{COURSE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Enrolled Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All courses should show enrolled status\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course, index) {",
+									"            pm.expect(course.is_enrolled).to.eql(true);",
+									"            pm.expect(course.enrollment).to.not.be.null;",
+									"            console.log(`Course ${index + 1}: ${course.title} - Enrolled: ${course.is_enrolled}`);",
+									"        });",
+									"    } else {",
+									"        console.log('No enrolled courses found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/my-enrolled",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"my-enrolled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Available Courses (Not Enrolled)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All courses should show NOT enrolled status\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course, index) {",
+									"            pm.expect(course.is_enrolled).to.eql(false);",
+									"            pm.expect(course.enrollment).to.be.null;",
+									"            console.log(`Course ${index + 1}: ${course.title} - Available for enrollment`);",
+									"        });",
+									"    } else {",
+									"        console.log('All courses are already enrolled');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/available",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"available"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Enrollments & GitHub Integration",
+			"item": [
+				{
+					"name": "Enroll in Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"ENROLLMENT_ID\", jsonData.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"course_id\": {{COURSE_ID}}\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List My Enrollments",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Enrollment Details",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign GitHub Repository",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"github_repository_url\": \"https://github.com/student/javascript-fundamentals-project\",\n    \"github_repository_name\": \"student/javascript-fundamentals-project\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}/github-repository",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}",
+								"github-repository"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Enrollment Status",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}/status",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CodeRabbit Integration",
+			"item": [
+				{
+					"name": "Trigger Code Analysis",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}/trigger-analysis",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}",
+								"trigger-analysis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Manual Trigger Analysis (Alternative)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"enrollment_id\": {{ENROLLMENT_ID}}\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/coderabbit/analyze",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"coderabbit",
+								"analyze"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Code Analysis Results (Manual)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code_analysis_data\": {\n        \"analysis_id\": \"cr_analysis_12345\",\n        \"status\": \"completed\",\n        \"completed_at\": \"2025-06-21T15:30:00Z\",\n        \"issues\": [\n            {\n                \"type\": \"bug\",\n                \"severity\": \"high\",\n                \"file\": \"src/main.js\",\n                \"line\": 42,\n                \"message\": \"Potential null pointer dereference\",\n                \"rule\": \"no-null-dereference\"\n            },\n            {\n                \"type\": \"code_smell\",\n                \"severity\": \"medium\",\n                \"file\": \"src/utils.js\",\n                \"line\": 15,\n                \"message\": \"Function complexity is too high\",\n                \"rule\": \"complexity\"\n            },\n            {\n                \"type\": \"vulnerability\",\n                \"severity\": \"low\",\n                \"file\": \"package.json\",\n                \"line\": 1,\n                \"message\": \"Dependency has known vulnerability\",\n                \"rule\": \"known-vulnerabilities\"\n            }\n        ],\n        \"metrics\": {\n            \"lines_of_code\": 500,\n            \"complexity\": 15,\n            \"test_coverage\": 85,\n            \"maintainability_index\": 78,\n            \"technical_debt_ratio\": 5.2\n        },\n        \"summary\": {\n            \"total_issues\": 3,\n            \"critical_issues\": 0,\n            \"high_issues\": 1,\n            \"medium_issues\": 1,\n            \"low_issues\": 1\n        }\n    },\n    \"code_quality_score\": 78.5\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}/code-analysis",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}",
+								"code-analysis"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CodeRabbit Webhook (Simulate)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-CodeRabbit-Signature",
+								"value": "sha256=webhook_signature_here",
+								"type": "text"
+							},
+							{
+								"key": "User-Agent",
+								"value": "CodeRabbit-Webhook/1.0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_type\": \"analysis_completed\",\n    \"analysis_id\": \"cr_analysis_67890\",\n    \"enrollment_id\": {{ENROLLMENT_ID}},\n    \"status\": \"completed\",\n    \"repository\": {\n        \"owner\": \"student\",\n        \"name\": \"javascript-fundamentals-project\",\n        \"url\": \"https://github.com/student/javascript-fundamentals-project\"\n    },\n    \"issues\": [\n        {\n            \"type\": \"bug\",\n            \"severity\": \"critical\",\n            \"file\": \"src/calculator.js\",\n            \"line\": 25,\n            \"message\": \"Division by zero not handled\",\n            \"rule\": \"division-by-zero\",\n            \"suggestion\": \"Add check for zero divisor\"\n        },\n        {\n            \"type\": \"security\",\n            \"severity\": \"high\",\n            \"file\": \"src/api.js\",\n            \"line\": 10,\n            \"message\": \"Potential XSS vulnerability\",\n            \"rule\": \"xss-prevention\",\n            \"suggestion\": \"Sanitize user input\"\n        },\n        {\n            \"type\": \"performance\",\n            \"severity\": \"medium\",\n            \"file\": \"src/data-processor.js\",\n            \"line\": 55,\n            \"message\": \"Inefficient loop structure\",\n            \"rule\": \"efficient-loops\",\n            \"suggestion\": \"Use array methods like map() or filter()\"\n        }\n    ],\n    \"metrics\": {\n        \"lines_of_code\": 750,\n        \"complexity\": 22,\n        \"test_coverage\": 92,\n        \"maintainability_index\": 85,\n        \"technical_debt_ratio\": 3.8,\n        \"duplicated_lines\": 15\n    },\n    \"summary\": {\n        \"total_issues\": 3,\n        \"critical_issues\": 1,\n        \"high_issues\": 1,\n        \"medium_issues\": 1,\n        \"low_issues\": 0,\n        \"security_issues\": 1,\n        \"performance_issues\": 1\n    },\n    \"timestamp\": \"2025-06-21T16:45:00Z\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/coderabbit/webhook",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"coderabbit",
+								"webhook"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{			"name": "Verification & Testing",
+			"item": [
+				{
+					"name": "Test Enrolled vs Available Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Enrolled courses endpoint works correctly\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course) {",
+									"            pm.expect(course.is_enrolled).to.eql(true);",
+									"            pm.expect(course.enrollment).to.not.be.null;",
+									"        });",
+									"        console.log('✅ Found', jsonData.data.data.length, 'enrolled courses');",
+									"    } else {",
+									"        console.log('No enrolled courses found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/my-enrolled",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"my-enrolled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Available Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Available courses endpoint works correctly\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course) {",
+									"            pm.expect(course.is_enrolled).to.eql(false);",
+									"            pm.expect(course.enrollment).to.be.null;",
+									"        });",
+									"        console.log('✅ Found', jsonData.data.data.length, 'available courses');",
+									"    } else {",
+									"        console.log('All courses are already enrolled');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/available",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"available"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Course Enrollment Status (Before Enrollment)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Course should show NOT enrolled before enrollment\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var course = jsonData.data;",
+									"    pm.expect(course.is_enrolled).to.eql(false);",
+									"    pm.expect(course.enrollment).to.be.null;",
+									"    console.log('✅ Course shows NOT enrolled status correctly');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"{{COURSE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Course Enrollment Status (After Enrollment)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Course should show enrolled after enrollment\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var course = jsonData.data;",
+									"    pm.expect(course.is_enrolled).to.eql(true);",
+									"    pm.expect(course.enrollment).to.not.be.null;",
+									"    pm.expect(course.enrollment).to.have.property('id');",
+									"    pm.expect(course.enrollment).to.have.property('status');",
+									"    pm.expect(course.enrollment).to.have.property('github_repository_url');",
+									"    console.log('✅ Course shows enrolled status with enrollment details:');",
+									"    console.log('Enrollment ID:', course.enrollment.id);",
+									"    console.log('Status:', course.enrollment.status);",
+									"    console.log('GitHub Repo:', course.enrollment.github_repository_url || 'Not assigned');",
+									"    console.log('Quality Score:', course.enrollment.code_quality_score || 'Not analyzed');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"{{COURSE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Updated Enrollment (After Analysis)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Programming Languages",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/programming-languages",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"programming-languages"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Enrollment",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"completed\"\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/api/enrollments/{{ENROLLMENT_ID}}/status",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"enrollments",
+								"{{ENROLLMENT_ID}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "AUTH_TOKEN",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "USER_ID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "COURSE_ID",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "ENROLLMENT_ID",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->longText('content'); // HTML content including videos, images, commands, information
             $table->integer('step_order')->default(0); // Order within the course
-            $table->enum('step_type', ['lesson', 'exercise', 'quiz', 'project'])->default('lesson');
+            $table->string('step_type')->default('lesson');
             $table->boolean('is_required')->default(true); // Whether step is mandatory for course completion
             $table->json('metadata')->nullable(); // Additional data like video duration, difficulty, etc.
             $table->boolean('is_active')->default(true);
