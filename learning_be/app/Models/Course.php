@@ -14,8 +14,11 @@ class Course extends Model
     protected $fillable = [
         'title',
         'description',
+        'poster',
+        'thumbnail',
         'content',
-        'difficulty_level',
+        'category',
+        'difficulty',
         'estimated_duration_hours',
         'is_active',
         'programming_language_id',
@@ -88,7 +91,7 @@ class Course extends Model
 
     public function scopeByDifficulty($query, $difficulty)
     {
-        return $query->where('difficulty_level', $difficulty);
+        return $query->where('difficulty', $difficulty);
     }
 
     public function scopeByLanguage($query, $languageId)
