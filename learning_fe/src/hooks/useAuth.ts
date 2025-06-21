@@ -44,7 +44,6 @@ export const useAuth = () => {
 
     initializeAuth();
   }, [tokens, user, login, logout, setLoading]);
-
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     clearError();
@@ -52,8 +51,11 @@ export const useAuth = () => {
     try {
       const response = await AuthAPI.login({ email, password });
       
-      if (response.success && response.data) {
-        login(response.data.user, response.data.tokens);
+      if (response.success && response.data?.data) {
+        // Extract user and token from Laravel response
+        const user = response.data.data.user;
+        const tokens = { accessToken: response.data.data.token };
+        login(user, tokens);
         return true;
       } else {
         setError(response.error?.message || 'Login failed');
@@ -65,27 +67,31 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleRegister = async (
+  };  const handleRegister = async (
     email: string,
     password: string,
-    firstName: string,
-    lastName: string
+    name: string,
+    role: 'student' | 'teacher' = 'student',
+    language_preference: string = 'en'
   ): Promise<boolean> => {
     setLoading(true);
     clearError();
 
     try {
       const response = await AuthAPI.register({
+        name,
         email,
         password,
-        firstName,
-        lastName,
+        password_confirmation: password,
+        role,
+        language_preference,
       });
       
-      if (response.success && response.data) {
-        login(response.data.user, response.data.tokens);
+      if (response.success && response.data?.data) {
+        // Extract user and token from Laravel response
+        const user = response.data.data.user;
+        const tokens = { accessToken: response.data.data.token };
+        login(user, tokens);
         return true;
       } else {
         setError(response.error?.message || 'Registration failed');

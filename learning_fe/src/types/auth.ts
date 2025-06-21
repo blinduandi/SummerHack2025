@@ -1,21 +1,12 @@
 export interface User {
   id: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  role: 'student' | 'teacher';
+  language_preference: string;
+  created_at: string;
+  updated_at: string;
 }
-
-export const UserRole = {
-  ADMIN: 'admin',
-  USER: 'user',
-  MODERATOR: 'moderator'
-} as const;
-
-export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 export interface LoginCredentials {
   email: string;
@@ -23,20 +14,26 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
+  name: string;
   email: string;
   password: string;
-  firstName: string;
-  lastName: string;
+  password_confirmation: string;
+  role: 'student' | 'teacher';
+  language_preference?: string;
 }
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
+  refreshToken?: string;
 }
 
 export interface AuthResponse {
-  user: User;
-  tokens: AuthTokens;
+  success: boolean;
+  data?: {
+    user: User;
+    token: string; // Laravel Sanctum returns a single token
+  };
+  message?: string;
 }
 
 export interface ApiError {

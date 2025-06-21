@@ -27,8 +27,7 @@ export const DashboardPage: React.FC = () => {
       {/* Welcome Section */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Stack direction="row" alignItems="center" spacing={3}>
-            <Avatar
+          <Stack direction="row" alignItems="center" spacing={3}>            <Avatar
               sx={{
                 width: 80,
                 height: 80,
@@ -36,33 +35,34 @@ export const DashboardPage: React.FC = () => {
                 fontSize: '2rem',
               }}
             >
-              {getInitials(user.firstName, user.lastName)}
+              {getInitials(user.name)}
             </Avatar>
             <Box>
               <Typography variant="h5" fontWeight="bold" gutterBottom>
-                Welcome back, {user.firstName}!
+                Welcome back, {user.name || 'User'}!
               </Typography>
               <Typography variant="body1" color="text.secondary" gutterBottom>
-                {user.email}
+                {user.email || 'No email'}
               </Typography>
-              <Chip
-                label={user.role.toUpperCase()}
-                color="primary"
-                size="small"
-              />
+              {user.role && (
+                <Chip
+                  label={user.role.toUpperCase()}
+                  color="primary"
+                  size="small"
+                />
+              )}
             </Box>
           </Stack>
         </CardContent>
       </Card>{/* Stats Grid */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3, mb: 3 }}>
-        <Card>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 3, mb: 3 }}>        <Card>
           <CardContent>
             <Stack spacing={1}>
               <Typography variant="h6" color="text.secondary">
-                Account Status
+                User ID
               </Typography>
-              <Typography variant="h4" fontWeight="bold" color="success.main">
-                {user.isActive ? 'Active' : 'Inactive'}
+              <Typography variant="h4" fontWeight="bold" color="primary.main">
+                #{user.id}
               </Typography>
             </Stack>
           </CardContent>
@@ -73,9 +73,8 @@ export const DashboardPage: React.FC = () => {
             <Stack spacing={1}>
               <Typography variant="h6" color="text.secondary">
                 Member Since
-              </Typography>
-              <Typography variant="h4" fontWeight="bold">
-                {new Date(user.createdAt).getFullYear()}
+              </Typography>              <Typography variant="h4" fontWeight="bold">
+                {user.created_at ? new Date(user.created_at).getFullYear() : 'Unknown'}
               </Typography>
             </Stack>
           </CardContent>
@@ -88,23 +87,20 @@ export const DashboardPage: React.FC = () => {
                 Role
               </Typography>
               <Stack direction="row" alignItems="center" spacing={1}>
-                <PersonIcon color="primary" />
-                <Typography variant="h6" fontWeight="bold">
-                  {user.role}
+                <PersonIcon color="primary" />                <Typography variant="h6" fontWeight="bold">
+                  {user.role || 'No role assigned'}
                 </Typography>
               </Stack>
             </Stack>
           </CardContent>
-        </Card>
-
-        <Card>
+        </Card>        <Card>
           <CardContent>
             <Stack spacing={1}>
               <Typography variant="h6" color="text.secondary">
-                Last Updated
+                Language Preference
               </Typography>
-              <Typography variant="body1" fontWeight="bold">
-                {new Date(user.updatedAt).toLocaleDateString()}
+              <Typography variant="h4" fontWeight="bold">
+                {user.language_preference?.toUpperCase() || 'Not set'}
               </Typography>
             </Stack>
           </CardContent>
