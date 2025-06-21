@@ -73,10 +73,118 @@ GET /api/courses?language_id=1&difficulty=beginner&search=intro
 Authorization: Bearer {token}
 ```
 
+**Response includes enrollment information for authenticated users:**
+```json
+{
+    "success": true,
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "title": "JavaScript Fundamentals",
+                "description": "Learn the basics",
+                "difficulty_level": "beginner",
+                "is_enrolled": true,
+                "enrollment": {
+                    "id": 5,
+                    "status": "active",
+                    "github_repository_url": "https://github.com/student/js-project",
+                    "code_quality_score": 87.5,
+                    "enrolled_at": "2025-06-21T10:30:00.000000Z"
+                },
+                "programming_language": {
+                    "id": 1,
+                    "name": "JavaScript"
+                }
+            }
+        ]
+    }
+}
+```
+
+#### My Enrolled Courses
+```http
+GET /api/courses/my-enrolled?language_id=1&difficulty=beginner&search=intro
+Authorization: Bearer {token}
+```
+
+Returns only courses the authenticated user is enrolled in. All courses will have `is_enrolled: true` and include enrollment details.
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "My enrolled courses retrieved successfully",
+    "data": {
+        "data": [
+            {
+                "id": 1,
+                "title": "JavaScript Fundamentals",
+                "is_enrolled": true,
+                "enrollment": {
+                    "id": 5,
+                    "status": "active",
+                    "github_repository_url": "https://github.com/student/js-project",
+                    "code_quality_score": 87.5
+                }
+            }
+        ]
+    }
+}
+```
+
+#### Available Courses (Not Enrolled)
+```http
+GET /api/courses/available?language_id=1&difficulty=beginner&search=intro
+Authorization: Bearer {token}
+```
+
+Returns only courses the authenticated user is NOT enrolled in. All courses will have `is_enrolled: false` and `enrollment: null`.
+
+**Response:**
+```json
+{
+    "success": true,
+    "message": "Available courses retrieved successfully",
+    "data": {
+        "data": [
+            {
+                "id": 2,
+                "title": "Advanced JavaScript",
+                "is_enrolled": false,
+                "enrollment": null
+            }
+        ]
+    }
+}
+```
+
 #### Get Course
 ```http
 GET /api/courses/{id}
 Authorization: Bearer {token}
+```
+
+**Response includes enrollment information for authenticated users:**
+```json
+{
+    "success": true,
+    "data": {
+        "id": 1,
+        "title": "JavaScript Fundamentals",
+        "description": "Learn JavaScript basics with automated code quality analysis",
+        "is_enrolled": true,
+        "enrollment": {
+            "id": 5,
+            "status": "active",
+            "github_repository_url": "https://github.com/student/js-project",
+            "github_repository_name": "student/js-project",
+            "code_analysis_data": {...},
+            "code_quality_score": 87.5,
+            "last_analysis_at": "2025-06-21T15:45:00.000000Z"
+        }
+    }
+}
 ```
 
 #### Create Course (Teachers only)

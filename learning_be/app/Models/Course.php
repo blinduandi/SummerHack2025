@@ -68,6 +68,18 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
+    // Helper method to check if a user is enrolled
+    public function isUserEnrolled($userId): bool
+    {
+        return $this->enrollments()->where('user_id', $userId)->exists();
+    }
+
+    // Helper method to get user's enrollment if exists
+    public function getUserEnrollment($userId)
+    {
+        return $this->enrollments()->where('user_id', $userId)->first();
+    }
+
     // Scopes
     public function scopeActive($query)
     {
