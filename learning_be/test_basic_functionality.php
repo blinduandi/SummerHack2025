@@ -16,29 +16,29 @@ echo "1. Checking table structures...\n";
 try {
     $userCount = User::count();
     echo "   ✅ Users table: {$userCount} records\n";
-    
+
     $courseCount = Course::count();
     echo "   ✅ Courses table: {$courseCount} records\n";
-    
+
     $enrollmentCount = Enrollment::count();
     echo "   ✅ Enrollments table: {$enrollmentCount} records\n";
-    
+
     // Check if GitHub fields exist in enrollments
     $enrollment = new Enrollment();
     $fillable = $enrollment->getFillable();
-    
+
     if (in_array('github_repository_url', $fillable)) {
         echo "   ✅ GitHub repository URL field exists\n";
     } else {
         echo "   ❌ GitHub repository URL field missing\n";
     }
-    
+
     if (in_array('code_analysis_data', $fillable)) {
         echo "   ✅ Code analysis data field exists\n";
     } else {
         echo "   ❌ Code analysis data field missing\n";
     }
-    
+
 } catch (Exception $e) {
     echo "   ❌ Database error: " . $e->getMessage() . "\n";
 }
@@ -54,7 +54,7 @@ try {
         'is_active' => true
     ]);
     echo "   ✅ JavaScript programming language: ID {$jsLang->id}\n";
-    
+
     // Create test user
     $testUser = User::firstOrCreate([
         'email' => 'test@example.com'
@@ -65,7 +65,7 @@ try {
         'language_preference' => 'en'
     ]);
     echo "   ✅ Test user: ID {$testUser->id}\n";
-    
+
     // Create test course
     $testCourse = Course::firstOrCreate([
         'title' => 'Test JavaScript Course'
@@ -79,7 +79,7 @@ try {
         'is_active' => true
     ]);
     echo "   ✅ Test course: ID {$testCourse->id}\n";
-    
+
 } catch (Exception $e) {
     echo "   ❌ Error creating test data: " . $e->getMessage() . "\n";
 }
@@ -97,7 +97,7 @@ try {
         'enrolled_at' => now()
     ]);
     echo "   ✅ Test enrollment: ID {$enrollment->id}\n";
-    
+
     // Update with GitHub repository
     $enrollment->update([
         'github_repository_url' => 'https://github.com/test/test-repo',
@@ -112,7 +112,7 @@ try {
     echo "   ✅ GitHub repository assigned\n";
     echo "   ✅ Code analysis data stored\n";
     echo "   ✅ Quality score: {$enrollment->code_quality_score}\n";
-    
+
 } catch (Exception $e) {
     echo "   ❌ Error testing enrollment: " . $e->getMessage() . "\n";
 }
@@ -122,17 +122,17 @@ echo "\n4. Testing model relationships...\n";
 
 try {
     $enrollment = Enrollment::with(['user', 'course'])->first();
-    
+
     if ($enrollment) {
         echo "   ✅ Enrollment->User: {$enrollment->user->name}\n";
         echo "   ✅ Enrollment->Course: {$enrollment->course->title}\n";
-        
+
         $course = Course::with('enrollments')->first();
         if ($course && $course->enrollments->count() > 0) {
             echo "   ✅ Course->Enrollments: {$course->enrollments->count()} enrollments\n";
         }
     }
-    
+
 } catch (Exception $e) {
     echo "   ❌ Error testing relationships: " . $e->getMessage() . "\n";
 }

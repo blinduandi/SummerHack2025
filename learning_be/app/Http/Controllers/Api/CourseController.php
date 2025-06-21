@@ -38,13 +38,24 @@ class CourseController extends Controller
 
         $courses = $query->paginate($request->get('per_page', 15));
 
+        // Add enrollment information for authenticated user
+        if ($request->user()) {
+            $userId = $request->user()->id;
+            $courses->getCollection()->transform(function ($course) use ($userId) {
+                $enrollment = $course->getUserEnrollment($userId);
+                $course->is_enrolled = !is_null($enrollment);
+                $course->enrollment = $enrollment;
+                return $course;
+            });
+        }
+
         return response()->json([
             'success' => true,
             'data' => $courses
         ]);
     }
 
-    public function show(Course $course): JsonResponse
+    public function show(Request $request, Course $course): JsonResponse
     {
         $course->load([
             'creator',
@@ -53,6 +64,14 @@ class CourseController extends Controller
                 $query->active()->ordered();
             }
         ]);
+
+        // Add enrollment information for authenticated user
+        if ($request->user()) {
+            $userId = $request->user()->id;
+            $enrollment = $course->getUserEnrollment($userId);
+            $course->is_enrolled = !is_null($enrollment);
+            $course->enrollment = $enrollment;
+        }
 
         return response()->json([
             'success' => true,
@@ -163,6 +182,113 @@ class CourseController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Course deleted successfully'
+        ]);
+    }
+
+    public function myEnrolledCourses(Request $request): JsonResponse
+    {
+        if (!$request->user()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
+
+        $userId = $request->user()->id;
+
+        $query = Course::with(['creator', 'programmingLanguage'])
+            ->whereHas('enrollments', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->active()
+            ->latest();
+
+        // Filter by programming language
+        if ($request->has('language_id')) {
+            $query->byLanguage($request->language_id);
+        }
+
+        // Filter by difficulty
+        if ($request->has('difficulty')) {
+            $query->byDifficulty($request->difficulty);
+        }
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $courses = $query->paginate($request->get('per_page', 15));
+
+        // Add enrollment information
+        $courses->getCollection()->transform(function ($course) use ($userId) {
+            $enrollment = $course->getUserEnrollment($userId);
+            $course->is_enrolled = true; // Always true for this endpoint
+            $course->enrollment = $enrollment;
+            return $course;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'My enrolled courses retrieved successfully',
+            'data' => $courses
+        ]);
+    }
+
+    public function availableCourses(Request $request): JsonResponse
+    {
+        if (!$request->user()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
+
+        $userId = $request->user()->id;
+
+        $query = Course::with(['creator', 'programmingLanguage'])
+            ->whereDoesntHave('enrollments', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })
+            ->active()
+            ->latest();
+
+        // Filter by programming language
+        if ($request->has('language_id')) {
+            $query->byLanguage($request->language_id);
+        }
+
+        // Filter by difficulty
+        if ($request->has('difficulty')) {
+            $query->byDifficulty($request->difficulty);
+        }
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $courses = $query->paginate($request->get('per_page', 15));
+
+        // Add enrollment information
+        $courses->getCollection()->transform(function ($course) use ($userId) {
+            $course->is_enrolled = false; // Always false for this endpoint
+            $course->enrollment = null;
+            return $course;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Available courses retrieved successfully',
+            'data' => $courses
         ]);
     }
 }

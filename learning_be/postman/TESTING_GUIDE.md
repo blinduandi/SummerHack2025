@@ -44,62 +44,73 @@ Your API will be available at: `http://localhost:8000`
 
 ### Phase 2: Course Management
 
-4. **Create Course**
+4. **List Courses**
+   - Shows all courses with enrollment information
+   - **Tests:** Verifies `is_enrolled` and `enrollment` fields are present
+   - Shows mixed enrolled/not enrolled status
+
+5. **My Enrolled Courses**
+   - Shows only courses the user is enrolled in
+   - **Tests:** All courses should have `is_enrolled: true`
+   - **Tests:** All courses should have enrollment details
+
+6. **Available Courses (Not Enrolled)**
+   - Shows only courses the user is NOT enrolled in
+   - **Tests:** All courses should have `is_enrolled: false`
+   - **Tests:** All courses should have `enrollment: null`
+
+7. **Create Course**
    - Creates a test course for enrollment
    - **Auto-saves:** `COURSE_ID` to environment
    - Note: User must have "teacher" role or modify validation
 
-5. **List Courses**
-   - Shows available courses
-   - Verify the created course appears
-
-6. **Get Course**
-   - Retrieves specific course details
-   - Uses `COURSE_ID` from previous step
+8. **Get Course**
+   - Retrieves single course details
+   - **Tests:** Verifies enrollment information is included
 
 ### Phase 3: Enrollment & GitHub Integration
 
-7. **Enroll in Course**
+9. **Enroll in Course**
    - Enrolls authenticated user in the course
    - **Auto-saves:** `ENROLLMENT_ID` to environment
    - ✅ **Critical:** This ID is used for all GitHub/CodeRabbit tests
 
-8. **List My Enrollments**
-   - Shows user's enrollments
-   - Verify the new enrollment appears
+10. **List My Enrollments**
+    - Shows user's enrollments
+    - Verify the new enrollment appears
 
-9. **Get Enrollment Details**
-   - Shows detailed enrollment info
-   - Should show GitHub fields as null initially
+11. **Get Enrollment Details**
+    - Shows detailed enrollment info
+    - Should show GitHub fields as null initially
 
-10. **Assign GitHub Repository**
+12. **Assign GitHub Repository**
     - **⭐ KEY FEATURE:** Links GitHub repo to enrollment
     - Updates `github_repository_url` and `github_repository_name`
     - Verify response shows updated GitHub fields
 
-11. **Update Enrollment Status**
+13. **Update Enrollment Status**
     - Changes status to "active", "completed", etc.
     - Test different status values
 
 ### Phase 4: CodeRabbit Integration Testing
 
-12. **Trigger Code Analysis** (Method 1)
+14. **Trigger Code Analysis** (Method 1)
     - **⭐ KEY FEATURE:** Triggers CodeRabbit analysis for the enrollment
     - Requires GitHub repository to be assigned first
     - Tests the main CodeRabbit integration endpoint
 
-13. **Manual Trigger Analysis** (Method 2)
+15. **Manual Trigger Analysis** (Method 2)
     - Alternative endpoint for triggering analysis
     - Uses different route structure
     - Good for testing different approaches
 
-14. **Update Code Analysis Results (Manual)**
+16. **Update Code Analysis Results (Manual)**
     - **⭐ TESTING FEATURE:** Manually sets analysis results
     - Uses comprehensive test data with issues, metrics, and scores
     - Simulates what CodeRabbit webhook would do
     - Verify quality score calculation
 
-15. **CodeRabbit Webhook (Simulate)**
+17. **CodeRabbit Webhook (Simulate)**
     - **⭐ KEY FEATURE:** Simulates CodeRabbit sending analysis results
     - Tests webhook endpoint security and processing
     - Includes realistic analysis data structure
@@ -107,7 +118,7 @@ Your API will be available at: `http://localhost:8000`
 
 ### Phase 5: Verification
 
-16. **Get Updated Enrollment (After Analysis)**
+18. **Get Updated Enrollment (After Analysis)**
     - **⭐ VERIFICATION:** Check that analysis data was stored
     - Should show:
       - `code_analysis_data` with issues and metrics
@@ -115,11 +126,11 @@ Your API will be available at: `http://localhost:8000`
       - `last_analysis_at` timestamp
       - GitHub repository information
 
-17. **List Programming Languages**
+19. **List Programming Languages**
     - Utility endpoint for reference data
     - Useful for creating courses
 
-18. **Complete Enrollment**
+20. **Complete Enrollment**
     - Sets enrollment status to "completed"
     - Final workflow step
 

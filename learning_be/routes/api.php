@@ -30,6 +30,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Courses
+    Route::get('courses/my-enrolled', [CourseController::class, 'myEnrolledCourses']);
+    Route::get('courses/available', [CourseController::class, 'availableCourses']);
     Route::apiResource('courses', CourseController::class);
     Route::get('courses/{course}/steps', [CourseStepController::class, 'index']);
 

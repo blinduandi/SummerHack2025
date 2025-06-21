@@ -131,9 +131,34 @@
 		},
 		{
 			"name": "Courses",
-			"item": [
-				{
+			"item": [				{
 					"name": "List Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response includes enrollment information\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        var course = jsonData.data.data[0];",
+									"        pm.expect(course).to.have.property('is_enrolled');",
+									"        console.log('First course enrollment status:', course.is_enrolled);",
+									"        if (course.is_enrolled) {",
+									"            pm.expect(course).to.have.property('enrollment');",
+									"            console.log('Enrollment details:', course.enrollment);",
+									"        }",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -222,9 +247,32 @@
 						}
 					},
 					"response": []
-				},
-				{
+				},				{
 					"name": "Get Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Course includes enrollment information\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var course = jsonData.data;",
+									"    pm.expect(course).to.have.property('is_enrolled');",
+									"    console.log('Course enrollment status:', course.is_enrolled);",
+									"    if (course.is_enrolled) {",
+									"        pm.expect(course).to.have.property('enrollment');",
+									"        console.log('Enrollment details:', JSON.stringify(course.enrollment, null, 2));",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"auth": {
 							"type": "bearer",
@@ -253,6 +301,128 @@
 								"api",
 								"courses",
 								"{{COURSE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "My Enrolled Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All courses should show enrolled status\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course, index) {",
+									"            pm.expect(course.is_enrolled).to.eql(true);",
+									"            pm.expect(course.enrollment).to.not.be.null;",
+									"            console.log(`Course ${index + 1}: ${course.title} - Enrolled: ${course.is_enrolled}`);",
+									"        });",
+									"    } else {",
+									"        console.log('No enrolled courses found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/my-enrolled",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"my-enrolled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Available Courses (Not Enrolled)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"All courses should show NOT enrolled status\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course, index) {",
+									"            pm.expect(course.is_enrolled).to.eql(false);",
+									"            pm.expect(course.enrollment).to.be.null;",
+									"            console.log(`Course ${index + 1}: ${course.title} - Available for enrollment`);",
+									"        });",
+									"    } else {",
+									"        console.log('All courses are already enrolled');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/available",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"available"
 							]
 						}
 					},
@@ -650,9 +820,241 @@
 				}
 			]
 		},
-		{
-			"name": "Verification & Testing",
+		{			"name": "Verification & Testing",
 			"item": [
+				{
+					"name": "Test Enrolled vs Available Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Enrolled courses endpoint works correctly\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course) {",
+									"            pm.expect(course.is_enrolled).to.eql(true);",
+									"            pm.expect(course.enrollment).to.not.be.null;",
+									"        });",
+									"        console.log('✅ Found', jsonData.data.data.length, 'enrolled courses');",
+									"    } else {",
+									"        console.log('No enrolled courses found');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/my-enrolled",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"my-enrolled"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Available Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Available courses endpoint works correctly\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data.data && jsonData.data.data.length > 0) {",
+									"        jsonData.data.data.forEach(function(course) {",
+									"            pm.expect(course.is_enrolled).to.eql(false);",
+									"            pm.expect(course.enrollment).to.be.null;",
+									"        });",
+									"        console.log('✅ Found', jsonData.data.data.length, 'available courses');",
+									"    } else {",
+									"        console.log('All courses are already enrolled');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/available",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"available"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Course Enrollment Status (Before Enrollment)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Course should show NOT enrolled before enrollment\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var course = jsonData.data;",
+									"    pm.expect(course.is_enrolled).to.eql(false);",
+									"    pm.expect(course.enrollment).to.be.null;",
+									"    console.log('✅ Course shows NOT enrolled status correctly');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"{{COURSE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Check Course Enrollment Status (After Enrollment)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Course should show enrolled after enrollment\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var course = jsonData.data;",
+									"    pm.expect(course.is_enrolled).to.eql(true);",
+									"    pm.expect(course.enrollment).to.not.be.null;",
+									"    pm.expect(course.enrollment).to.have.property('id');",
+									"    pm.expect(course.enrollment).to.have.property('status');",
+									"    pm.expect(course.enrollment).to.have.property('github_repository_url');",
+									"    console.log('✅ Course shows enrolled status with enrollment details:');",
+									"    console.log('Enrollment ID:', course.enrollment.id);",
+									"    console.log('Status:', course.enrollment.status);",
+									"    console.log('GitHub Repo:', course.enrollment.github_repository_url || 'Not assigned');",
+									"    console.log('Quality Score:', course.enrollment.code_quality_score || 'Not analyzed');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{AUTH_TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{BASE_URL}}/api/courses/{{COURSE_ID}}",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"api",
+								"courses",
+								"{{COURSE_ID}}"
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "Get Updated Enrollment (After Analysis)",
 					"request": {
