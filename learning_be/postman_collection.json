@@ -1,0 +1,1591 @@
+{
+	"info": {
+		"_postman_id": "learning-platform-api",
+		"name": "Learning Platform API",
+		"description": "Complete API collection for the Learning Platform backend with authentication, programs, courses, enrollments, progress tracking, chat, and recommendations.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "learning-platform"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Student",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Student\",\n    \"email\": \"student@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"user_type\": \"student\",\n    \"bio\": \"Aspiring developer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Register Teacher",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Jane Teacher\",\n    \"email\": \"teacher@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"user_type\": \"teacher\",\n    \"bio\": \"Experienced programming instructor\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('student_token', response.data.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"student@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Teacher",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('teacher_token', response.data.access_token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"teacher@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Updated Student\",\n    \"bio\": \"Updated bio - passionate about learning\",\n    \"skills\": [\"JavaScript\", \"HTML\", \"CSS\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Programming Languages",
+			"item": [
+				{
+					"name": "List Programming Languages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.length > 0) {",
+									"        pm.environment.set('programming_language_id', response.data[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/programming-languages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programming-languages"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Programs",
+			"item": [
+				{
+					"name": "Create Program",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('program_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Full Stack JavaScript Development\",\n    \"description\": \"Complete JavaScript development program covering frontend and backend\",\n    \"difficulty_level\": \"intermediate\",\n    \"estimated_duration_weeks\": 16,\n    \"prerequisites\": [\"Basic HTML knowledge\", \"Basic CSS knowledge\"],\n    \"learning_objectives\": [\"Master JavaScript fundamentals\", \"Build web applications\", \"Work with APIs\"],\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/programs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Programs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/programs?difficulty=intermediate&search=javascript&per_page=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs"
+							],
+							"query": [
+								{
+									"key": "difficulty",
+									"value": "intermediate"
+								},
+								{
+									"key": "search",
+									"value": "javascript"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Program",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/programs/{{program_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs",
+								"{{program_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Program",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Full Stack JavaScript Development - Updated\",\n    \"description\": \"Updated: Complete JavaScript development program covering frontend and backend with modern frameworks\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/programs/{{program_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs",
+								"{{program_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Courses",
+			"item": [
+				{
+					"name": "Create Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('course_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Introduction to JavaScript\",\n    \"description\": \"Learn the fundamentals of JavaScript programming\",\n    \"difficulty_level\": \"beginner\",\n    \"estimated_duration_hours\": 40,\n    \"programming_language_id\": {{programming_language_id}},\n    \"program_id\": {{program_id}},\n    \"prerequisites\": [\"Basic computer literacy\"],\n    \"learning_objectives\": [\"Understand variables and data types\", \"Write functions\", \"Work with the DOM\"],\n    \"tags\": [\"javascript\", \"programming\", \"web-development\"],\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Courses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses?program_id={{program_id}}&difficulty=beginner&search=intro",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses"
+							],
+							"query": [
+								{
+									"key": "program_id",
+									"value": "{{program_id}}"
+								},
+								{
+									"key": "difficulty",
+									"value": "beginner"
+								},
+								{
+									"key": "search",
+									"value": "intro"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Course",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Course",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Introduction to JavaScript - Updated\",\n    \"description\": \"Updated: Learn the fundamentals of JavaScript programming with practical exercises\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Course Steps",
+			"item": [
+				{
+					"name": "Create Course Step",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('step_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Variables in JavaScript\",\n    \"description\": \"Learn about variables and data types\",\n    \"content\": \"<h2>Variables</h2><p>Variables are containers for storing data values. In JavaScript, you can declare variables using <code>var</code>, <code>let</code>, or <code>const</code>.</p><h3>Example:</h3><pre><code>let message = 'Hello World';</code></pre>\",\n    \"step_order\": 1,\n    \"step_type\": \"lesson\",\n    \"is_required\": true,\n    \"metadata\": {\n        \"estimated_duration\": 15,\n        \"difficulty\": \"beginner\",\n        \"keywords\": [\"variables\", \"let\", \"const\", \"var\"]\n    },\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"steps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Exercise Step",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('exercise_step_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Exercise: Create Your First Variable\",\n    \"description\": \"Practice creating variables in JavaScript\",\n    \"content\": \"<h2>Exercise</h2><p>Create a variable called <code>firstName</code> and assign your name to it.</p><h3>Instructions:</h3><ol><li>Use the <code>let</code> keyword</li><li>Assign a string value</li><li>Print it to the console</li></ol>\",\n    \"step_order\": 2,\n    \"step_type\": \"exercise\",\n    \"is_required\": true,\n    \"metadata\": {\n        \"estimated_duration\": 10,\n        \"difficulty\": \"beginner\",\n        \"solution\": \"let firstName = 'Your Name'; console.log(firstName);\"\n    },\n    \"is_published\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"steps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Course Steps",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"steps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Course Step",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/steps/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"steps",
+								"{{step_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Course Step",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Variables in JavaScript - Updated\",\n    \"description\": \"Updated: Learn about variables, data types, and naming conventions\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/steps/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"steps",
+								"{{step_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Enrollments",
+			"item": [
+				{
+					"name": "Enroll in Program",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('enrollment_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"program_id\": {{program_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/enrollments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"enrollments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List User Enrollments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/enrollments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"enrollments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Enrollment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/enrollments/{{enrollment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"enrollments",
+								"{{enrollment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Enrollment Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/enrollments/{{enrollment_id}}/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"enrollments",
+								"{{enrollment_id}}",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Program Enrollments (Teacher)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/programs/{{program_id}}/enrollments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs",
+								"{{program_id}}",
+								"enrollments"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Progress Tracking",
+			"item": [
+				{
+					"name": "Get User Progress Overview",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Course Progress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/course/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"course",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Course Progress",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"progress_percentage\": 25,\n    \"status\": \"in_progress\",\n    \"checkpoint_data\": {\n        \"last_lesson\": 1,\n        \"quiz_scores\": [],\n        \"notes\": \"Started learning variables\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/course/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"course",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Course Steps Progress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/course/{{course_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"course",
+								"{{course_id}}",
+								"steps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Step Progress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/step/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"step",
+								"{{step_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Step Progress - Lesson",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"completed\",\n    \"progress_data\": {\n        \"read_time\": 12,\n        \"notes\": \"Understood variables concept well\"\n    },\n    \"notes\": \"This lesson was very clear and helpful\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/step/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"step",
+								"{{step_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Step Progress - Exercise",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"solved\",\n    \"score\": 95,\n    \"progress_data\": {\n        \"code_submission\": \"let firstName = 'John'; console.log(firstName);\",\n        \"completion_time\": 8\n    },\n    \"notes\": \"Completed the exercise successfully\",\n    \"increment_attempts\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/step/{{exercise_step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"step",
+								"{{exercise_step_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Chat (AI Bot)",
+			"item": [
+				{
+					"name": "Get Chat History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send General Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data.bot_response) {",
+									"        pm.environment.set('message_id', response.data.bot_response.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"Hello! I'm new to programming and I'm having trouble understanding JavaScript variables. Can you help me?\",\n    \"context_data\": {\n        \"user_level\": \"beginner\",\n        \"topic\": \"variables\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chat",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Course-Specific Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"I'm stuck on the variables exercise. Can you explain the difference between let and const?\",\n    \"context_data\": {\n        \"step_id\": {{exercise_step_id}},\n        \"code_snippet\": \"let firstName = 'John';\",\n        \"difficulty\": \"understanding syntax\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/course/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"course",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Error Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"I'm getting an error in my code and I don't understand what's wrong\",\n    \"context_data\": {\n        \"step_id\": {{exercise_step_id}},\n        \"code_snippet\": \"let firstName = 'John'; console.log(firstname);\",\n        \"error_message\": \"ReferenceError: firstname is not defined\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/course/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"course",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Course Chat",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/chat/course/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"course",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Message as Helpful",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"is_helpful\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/chat/messages/{{message_id}}/helpful",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"chat",
+								"messages",
+								"{{message_id}}",
+								"helpful"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Course Recommendations",
+			"item": [
+				{
+					"name": "Generate Recommendations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.length > 0) {",
+									"        pm.environment.set('recommendation_id', response.data[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/recommendations/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"generate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recommendations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/recommendations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dismiss Recommendation",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/recommendations/{{recommendation_id}}/dismiss",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"recommendations",
+								"{{recommendation_id}}",
+								"dismiss"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Testing",
+			"item": [
+				{
+					"name": "Test Unauthorized Access",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/programs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Invalid Resource",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/programs/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs",
+								"99999"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Validation Errors",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"\",\n    \"description\": \"\",\n    \"difficulty_level\": \"invalid\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/programs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Test Student Creating Program (Forbidden)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Test Program\",\n    \"description\": \"This should fail\",\n    \"difficulty_level\": \"beginner\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/programs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cleanup",
+			"item": [
+				{
+					"name": "Delete Course Step",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}/steps/{{exercise_step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}",
+								"steps",
+								"{{exercise_step_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Enrollment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/enrollments/{{enrollment_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"enrollments",
+								"{{enrollment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Course",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/courses/{{course_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"courses",
+								"{{course_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Program",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{teacher_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/programs/{{program_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"programs",
+								"{{program_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		}
+	]
+}
