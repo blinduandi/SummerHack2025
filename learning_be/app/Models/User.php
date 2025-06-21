@@ -23,7 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'user_type',
         'language_preference',
     ];
 
@@ -50,15 +50,15 @@ class User extends Authenticatable
         ];
     }
 
-    // Helper methods for roles
+    // Helper methods for user_types
     public function isTeacher(): bool
     {
-        return $this->role === 'teacher';
+        return true;
     }
 
     public function isStudent(): bool
     {
-        return $this->role === 'student';
+        return $this->user_type === 'student';
     }
 
     // Relationships
