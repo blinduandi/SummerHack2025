@@ -19,9 +19,9 @@ import type {
   UpdateCourseStepRequest,
   EnrollmentRequest,
   UpdateEnrollmentStatusRequest,
-  UpdateGithubRepositoryRequest,
-  UpdateCodeAnalysisRequest,
-  UpdateProgressRequest,
+  UpdateGithubRepositoryRequest,  UpdateCodeAnalysisRequest,
+  UpdateStepProgressRequest,
+  UpdateCourseProgressRequest,
   SendChatMessageRequest,
   UpdateProfileRequest,
   PaginatedResponse,
@@ -882,11 +882,10 @@ class ProgressAPI {
       };
     }
   }
-
   /**
    * Update course progress
    */
-  static async updateCourseProgress(courseId: number, data: UpdateProgressRequest): Promise<ApiResponse<Progress>> {
+  static async updateCourseProgress(courseId: number, data: UpdateCourseProgressRequest): Promise<ApiResponse<Progress>> {
     try {
       const response: AxiosResponse<{ success: boolean; data: Progress }> = await api.put(`/progress/course/${courseId}`, data);
       return {
@@ -948,11 +947,10 @@ class ProgressAPI {
       };
     }
   }
-
   /**
    * Update step progress
    */
-  static async updateStepProgress(stepId: number, data: UpdateProgressRequest): Promise<ApiResponse<Progress>> {
+  static async updateStepProgress(stepId: number, data: UpdateStepProgressRequest): Promise<ApiResponse<Progress>> {
     try {
       const response: AxiosResponse<{ success: boolean; data: Progress }> = await api.put(`/progress/step/${stepId}`, data);
       return {

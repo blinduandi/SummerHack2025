@@ -29,9 +29,9 @@ export interface CourseStep {
   description: string;
   content: string;
   step_order: number;
-  step_type: 'lesson' | 'exercise' | 'quiz' | 'project';
+  step_type: 'theory' | 'review' | 'code' | 'setup' | 'deployment' | 'testing';
   is_required: boolean;
-  metadata?: Record<string, any>;
+  metadata?: string | Record<string, any>; // Can be JSON string or parsed object
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -66,6 +66,7 @@ export interface Progress {
   user_id: number;
   course_id?: number;
   step_id?: number;
+  course_step_id?: number; // Added this field based on backend
   progress_percentage: number;
   status: 'not_started' | 'in_progress' | 'completed' | 'hidden' | 'solved';
   score?: number;
@@ -150,7 +151,27 @@ export interface UpdateCodeAnalysisRequest {
   code_quality_score: number;
 }
 
+export interface UpdateStepProgressRequest {
+  status?: 'hidden' | 'in_progress' | 'solved';
+  progress_data?: {
+    read_time?: number;
+    notes?: string;
+    [key: string]: any;
+  };
+  score?: number;
+  notes?: string;
+}
+
+export interface UpdateCourseProgressRequest {
+  course_id: number;
+  status?: 'not_started' | 'in_progress' | 'completed' | 'hidden';
+  progress_percentage?: number;
+}
+
+// Legacy interface for backward compatibility
 export interface UpdateProgressRequest {
+  step_id?: number;
+  course_id?: number;
   progress_percentage?: number;
   status?: 'not_started' | 'in_progress' | 'completed' | 'hidden' | 'solved';
   score?: number;
