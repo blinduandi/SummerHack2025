@@ -27,7 +27,7 @@ class StoreUserRequest extends FormRequest
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:student,teacher',
             'bio' => 'nullable|string|max:1000',
-            'avatar' => 'nullable|string|max:255',
+            'avatar' => 'nullable|string', // Base64 encoded image data
         ];
     }
 
