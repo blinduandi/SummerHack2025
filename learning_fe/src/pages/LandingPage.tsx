@@ -142,6 +142,8 @@ const FeatureCard = styled(Card)(({ theme }) => ({
   border: '1px solid rgba(99, 102, 241, 0.2)',
   borderRadius: 20,
   padding: '1rem',
+  minWidth: '50%',
+  maxWidth: '400px',
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
@@ -263,11 +265,8 @@ const TechIcon: React.FC<{ src: string; alt: string }> = ({ src, alt }) => {
         height: 60,
         objectFit: 'contain',
         mb: 2,
-        filter: 'grayscale(100%)',
         transition: 'filter 0.3s ease-in-out',
-        '&:hover': {
-          filter: 'grayscale(0%)',
-        },
+
       }}
       onError={handleError}
     />
@@ -327,16 +326,16 @@ export const LandingPage: React.FC = () => {
 
   // UPDATED: techStack now uses image asset paths
   const techStack = [
-    { name: 'JavaScript', icon: '/assets/js-icon.svg' },
+    { name: 'JavaScript', icon: './assets/js-icon.svg' },
     { name: 'Python', icon: '/assets/python-icon.svg' },
-    { name: 'Java', icon: '/assets/java-icon.png' },
-    { name: 'PHP', icon: '/assets/php-icon.png' },
-    { name: 'React', icon: '/assets/react-icon.png' },
-    { name: 'Ruby', icon: '/assets/ruby-icon.png' },
-    { name: 'Rust', icon: '/assets/rust-icon.png' },
-    { name: 'TypeScript', icon: '/assets/ts-icon.png' },
-    { name: 'Go', icon: '/assets/go-icon.png' },
-    { name: 'C#', icon: '/assets/csharp-icon.png' },
+    { name: 'Java', icon: '/assets/java-icon.svg' },
+    { name: 'PHP', icon: '/assets/php-icon.svg' },
+    { name: 'React', icon: '/assets/react-icon.svg' },
+    { name: 'Ruby', icon: '/assets/ruby-icon.svg' },
+    { name: 'Rust', icon: '/assets/rust-icon.svg' },
+    { name: 'TypeScript', icon: '/assets/ts-icon.svg' },
+    { name: 'Go', icon: '/assets/go-icon.svg' },
+    { name: 'C#', icon: '/assets/csharp-icon.svg' },
   ];
 
   const extendedTechStack = [...techStack, ...techStack];
@@ -456,7 +455,7 @@ export const LandingPage: React.FC = () => {
 
 
         {/* Features Section */}
-        <Box sx={{ py: 10, bgcolor: '#0a0a0a' }}>
+        <Box sx={{ py: 10, bgcolor: '#050505' }}>
           <Container maxWidth="xl">
             <Box textAlign="center" mb={6}>
               <Typography variant="h2" color="white" gutterBottom>
@@ -467,9 +466,9 @@ export const LandingPage: React.FC = () => {
               </Typography>
             </Box>
 
-            <Grid container spacing={4} justifyContent="center">
+            <Grid container spacing={4} justifyContent="center" sx={12}>
               {features.map((feature, index) => (
-                <Grid item xs={12} sm={8} md={6} key={index}>
+                <Grid key={index} sx={{ display: 'flex', justifyContent: 'center' }} xs={6}>
                   <Grow in timeout={1000 + index * 100}>
                     <FeatureCard>
                       <CardContent sx={{ p: 3 }}>
@@ -527,7 +526,7 @@ export const LandingPage: React.FC = () => {
         </Box>
 
         {/* Stats Section */}
-        <Box sx={{ py: 10, bgcolor: '#0a0a0a' }}>
+        <Box sx={{ py: 10, bgcolor: '#050505' }}>
           <Container maxWidth="lg">
             <Grid container spacing={4} justifyContent="center">
               {stats.map((stat, index) => (
@@ -581,7 +580,7 @@ export const LandingPage: React.FC = () => {
           </Container>
         </Box>
 
-        {/* Footer */}
+        {/* Footer
         <Box
           sx={{
             py: 4,
@@ -593,7 +592,7 @@ export const LandingPage: React.FC = () => {
           <Typography color="text.secondary">
             © {new Date().getFullYear()} CodePath AI. All rights reserved. Built with ❤️ for learners worldwide.
           </Typography>
-        </Box>
+        </Box> */}
 
         {/* Auth Modal */}
         <AuthModal
@@ -601,7 +600,7 @@ export const LandingPage: React.FC = () => {
           onClose={() => setAuthModalOpen(false)}
           initialTab={authModalTab}
         />
-      </Box>\
+      </Box>
     </ThemeProvider>
   );
 };
