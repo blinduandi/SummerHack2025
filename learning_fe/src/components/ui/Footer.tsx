@@ -22,7 +22,7 @@ export const Footer: React.FC = () => {
     <Box
       component="footer"
       sx={{
-        bgcolor: 'background.paper',
+        bgcolor: '#050505',
         borderTop: 1,
         borderColor: 'divider',
         py: 4,
@@ -39,11 +39,10 @@ export const Footer: React.FC = () => {
           >            {/* Logo and Description */}
             <Box sx={{ textAlign: { xs: 'center', md: 'left' } }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
-                {appName}
+                CodePath AI
               </Typography>
               <Typography variant="body2" color="text.secondary" maxWidth={300}>
-                A modern React authentication platform built with TypeScript and Material-UI.
-                Secure, fast, and beautiful.
+                Built with ❤️ for learners worldwide.
               </Typography>
               {devMode && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
@@ -137,7 +136,7 @@ export const Footer: React.FC = () => {
             alignItems="center"
             spacing={2}
           >            <Typography variant="body2" color="text.secondary">
-              © {new Date().getFullYear()} {appName}. All rights reserved.
+             © {new Date().getFullYear()} CodePath AI. All rights reserved. 
             </Typography>
             <Stack direction="row" spacing={3}>
               <Link href="#" variant="body2" color="text.secondary">

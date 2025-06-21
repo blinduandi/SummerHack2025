@@ -342,7 +342,7 @@ class AuthAPI {
   /**
    * Logout user
    */
-  static async logout(): Promise<ApiResponse<void>> {
+  static async logoutUser(): Promise<ApiResponse<void>> {
     try {
       await api.post('/auth/logout');
       return { success: true };
@@ -360,7 +360,7 @@ class AuthAPI {
   /**
    * Get current user profile
    */
-  static async getProfile(): Promise<ApiResponse<User>> {
+  static async getCurrentProfile(): Promise<ApiResponse<User>> {
     try {
       const response: AxiosResponse<{ success: boolean; data: User }> = await api.get('/auth/profile');
       return {
