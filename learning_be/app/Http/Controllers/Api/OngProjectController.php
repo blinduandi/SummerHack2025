@@ -30,6 +30,7 @@ class OngProjectController extends Controller
             'requirements' => 'nullable|string',
             'skills_needed' => 'nullable|array',
             'skills_needed.*' => 'string',
+            'due_date' => 'nullable|date',
         ]);
         $validated['ong_id'] = $request->user()->id;
         $validated['status'] = 'open';

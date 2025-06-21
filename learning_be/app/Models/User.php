@@ -62,7 +62,7 @@ class User extends Authenticatable
         return $this->role === 'student';
     }
 
-    public function isONG(): bool
+    public function isOng(): bool
     {
         return $this->role === 'ong';
     }
