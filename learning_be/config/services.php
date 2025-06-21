@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'coderabbit' => [
+        'api_key' => env('CODERABBIT_API_KEY'),
+        'base_url' => env('CODERABBIT_BASE_URL', 'https://api.coderabbit.ai'),
+        'webhook_secret' => env('CODERABBIT_WEBHOOK_SECRET'),
+    ],
+
+    'coderabbit' => [
+        'api_key' => env('CODERABBIT_API_KEY'),
+        'base_url' => env('CODERABBIT_BASE_URL', 'https://api.coderabbit.ai'),
+    ],
+
 ];

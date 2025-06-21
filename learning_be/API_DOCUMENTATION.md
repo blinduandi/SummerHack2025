@@ -65,63 +65,11 @@ Content-Type: application/json
 }
 ```
 
-### Programs
-
-#### List Programs
-```http
-GET /api/programs?difficulty=beginner&search=javascript&per_page=10
-Authorization: Bearer {token}
-```
-
-#### Get Program
-```http
-GET /api/programs/{id}
-Authorization: Bearer {token}
-```
-
-#### Create Program (Teachers only)
-```http
-POST /api/programs
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "title": "Full Stack JavaScript",
-    "description": "Complete JavaScript development course",
-    "difficulty_level": "intermediate",
-    "estimated_duration_weeks": 12,
-    "is_active": true
-}
-```
-
-#### Update Program
-```http
-PUT /api/programs/{id}
-Authorization: Bearer {token}
-Content-Type: application/json
-
-{
-    "title": "Updated Program Title"
-}
-```
-
-#### Delete Program
-```http
-DELETE /api/programs/{id}
-Authorization: Bearer {token}
-```
-
-#### Get Program Enrollments
-```http
-GET /api/programs/{id}/enrollments
-Authorization: Bearer {token}
-```
-
 ### Courses
 
 #### List Courses
 ```http
-GET /api/courses?program_id=1&language_id=1&difficulty=beginner&search=intro
+GET /api/courses?language_id=1&difficulty=beginner&search=intro
 Authorization: Bearer {token}
 ```
 
@@ -143,7 +91,6 @@ Content-Type: application/json
     "content": "Course overview content...",
     "difficulty_level": "beginner",
     "estimated_duration_hours": 40,
-    "program_id": 1,
     "programming_language_id": 1,
     "is_active": true
 }
@@ -226,14 +173,14 @@ GET /api/enrollments
 Authorization: Bearer {token}
 ```
 
-#### Enroll in Program
+#### Enroll in Course
 ```http
 POST /api/enrollments
 Authorization: Bearer {token}
 Content-Type: application/json
 
 {
-    "program_id": 1
+    "course_id": 1
 }
 ```
 
@@ -252,6 +199,51 @@ Content-Type: application/json
 {
     "status": "completed" // or "active", "dropped", "paused"
 }
+```
+
+#### Update GitHub Repository
+```http
+PATCH /api/enrollments/{id}/github-repository
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "github_repository_url": "https://github.com/username/repo-name",
+    "github_repository_name": "username/repo-name" // optional, will be extracted from URL if not provided
+}
+```
+
+#### Update Code Analysis
+```http
+PATCH /api/enrollments/{id}/code-analysis
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+    "code_analysis_data": {
+        "issues": [
+            {
+                "type": "bug",
+                "severity": "high",
+                "file": "src/main.js",
+                "line": 42,
+                "message": "Potential null pointer dereference"
+            }
+        ],
+        "metrics": {
+            "lines_of_code": 500,
+            "complexity": 15,
+            "test_coverage": 85
+        }
+    },
+    "code_quality_score": 87.5
+}
+```
+
+#### Trigger Code Analysis
+```http
+POST /api/enrollments/{id}/trigger-analysis
+Authorization: Bearer {token}
 ```
 
 #### Delete Enrollment
