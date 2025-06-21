@@ -9,7 +9,7 @@ test('user can register', function () {
         'email' => 'test@example.com',
         'password' => 'password123',
         'password_confirmation' => 'password123',
-        'user_type' => 'student',
+        'role' => 'student',
     ]);
 
     $response->assertStatus(201);
@@ -21,7 +21,7 @@ test('user can register', function () {
                 'id',
                 'name',
                 'email',
-                'user_type',
+                'role',
             ],
             'access_token',
             'token_type',
@@ -82,7 +82,7 @@ test('authenticated user can access profile', function () {
             'id',
             'name',
             'email',
-            'user_type',
+            'role',
         ]
     ]);
 });
@@ -92,9 +92,9 @@ test('registration validation works', function () {
         'name' => '',
         'email' => 'invalid-email',
         'password' => '123',
-        'user_type' => 'invalid',
+        'role' => 'invalid',
     ]);
 
     $response->assertStatus(422);
-    $response->assertJsonValidationErrors(['name', 'email', 'password', 'user_type']);
+    $response->assertJsonValidationErrors(['name', 'email', 'password', 'role']);
 });

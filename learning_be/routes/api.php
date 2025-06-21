@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\EnrollmentController;
 use App\Http\Controllers\Api\ProgressController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\RecommendationController;
+use App\Http\Controllers\Api\OngProjectController;
 
 // Public routes
 Route::prefix('auth')->group(function () {
@@ -79,4 +80,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
+    // ONG Project routes
+    Route::post('ong-projects', [OngProjectController::class, 'store']);
+    Route::post('ong-projects/{project}/apply', [OngProjectController::class, 'apply']);
+    Route::get('ong-projects/{project}/applicants', [OngProjectController::class, 'applicants']);
+    Route::post('ong-projects/{project}/submit', [OngProjectController::class, 'submit']);
+    Route::post('ong-projects/{project}/applications/{application}/select-winner', [OngProjectController::class, 'selectWinner']);
 });

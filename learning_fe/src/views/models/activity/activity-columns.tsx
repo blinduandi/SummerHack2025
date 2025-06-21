@@ -35,7 +35,7 @@ export const activityClientColumns: GridColDef[] = [
     ...stringColumn,
     renderCell: (params) => {
 
-      const causerType = params?.row?.causer_type
+      const causerType = params?.row?.carole
       const causer = params?.row?.causer
       const isUser = causerType === 'App\\Models\\User';
 

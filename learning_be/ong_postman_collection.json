@@ -1,0 +1,163 @@
+{
+  "info": {
+    "_postman_id": "ong-project-api",
+    "name": "ONG Project API",
+    "description": "API collection for ONG project workflow: registration, project creation, application, submission, winner selection, and Telegram notifications.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register ONG",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"ONG Example\",\n  \"email\": \"ong@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"ong\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+      }
+    },
+    {
+      "name": "Login ONG",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('ong_token', response.data.access_token);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"ong@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+      }
+    },
+    {
+      "name": "Create ONG Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{ong_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Build a Donation Platform\",\n  \"description\": \"A web app for managing donations.\",\n  \"requirements\": \"Experience with Laravel and Vue.js\",\n  \"skills_needed\": [\"php\", \"laravel\", \"vuejs\"]\n}"
+        },
+        "url": { "raw": "{{base_url}}/ong-projects", "host": ["{{base_url}}"], "path": ["ong-projects"] }
+      }
+    },
+    {
+      "name": "List Applicants",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{ong_token}}" }
+        ],
+        "url": { "raw": "{{base_url}}/ong-projects/{{project_id}}/applicants", "host": ["{{base_url}}"], "path": ["ong-projects", "{{project_id}}", "applicants"] }
+      }
+    },
+    {
+      "name": "Select Winner",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{ong_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/ong-projects/{{project_id}}/applications/{{application_id}}/select-winner", "host": ["{{base_url}}"], "path": ["ong-projects", "{{project_id}}", "applications", "{{application_id}}", "select-winner"] }
+      }
+    },
+    {
+      "name": "Register Student",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Student Example\",\n  \"email\": \"student@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"role\": \"student\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+      }
+    },
+    {
+      "name": "Login Student",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    pm.environment.set('student_token', response.data.access_token);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+      }
+    },
+    {
+      "name": "Apply to ONG Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/ong-projects/{{project_id}}/apply", "host": ["{{base_url}}"], "path": ["ong-projects", "{{project_id}}", "apply"] }
+      }
+    },
+    {
+      "name": "Submit Final Project",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{student_token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"github_repo\": \"https://github.com/student/project\",\n  \"images\": [\"https://imgur.com/example1.png\", \"https://imgur.com/example2.png\"]\n}"
+        },
+        "url": { "raw": "{{base_url}}/ong-projects/{{project_id}}/submit", "host": ["{{base_url}}"], "path": ["ong-projects", "{{project_id}}", "submit"] }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api", "type": "string" },
+    { "key": "ong_token", "value": "", "type": "string" },
+    { "key": "student_token", "value": "", "type": "string" },
+    { "key": "project_id", "value": "", "type": "string" },
+    { "key": "application_id", "value": "", "type": "string" }
+  ]
+}
