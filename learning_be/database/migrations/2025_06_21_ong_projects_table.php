@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->text('description');
             $table->text('requirements')->nullable();
             $table->json('skills_needed')->nullable();
-            $table->dateTime('due_date');
+            $table->dateTime('due_date')->nullable();
             $table->enum('status', ['open', 'in_progress', 'closed', 'completed'])->default('open');
             $table->unsignedBigInteger('winner_user_id')->nullable();
             $table->timestamps();
