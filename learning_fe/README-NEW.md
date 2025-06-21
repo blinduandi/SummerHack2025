@@ -6,8 +6,6 @@ A modern, professional React application built with TypeScript, Material-UI, and
 
 - **Modern Stack**: React 18, TypeScript, Vite
 - **UI Framework**: Material-UI (MUI) with custom theme
-- **Landing Page**: Beautiful, responsive landing page with hero section
-- **Navigation**: Professional navigation bar with mobile support
 - **Authentication**: JWT-based authentication with token management
 - **State Management**: Zustand for efficient state management
 - **Form Handling**: React Hook Form with Yup validation
@@ -22,17 +20,14 @@ src/
 │   ├── ui/             # Basic UI components
 │   │   ├── LoadingButton.tsx
 │   │   ├── AuthCard.tsx
-│   │   ├── Navigation.tsx
 │   │   └── ProtectedRoute.tsx
-│   ├── forms/          # Form components
-│   │   └── FormInput.tsx
-│   └── Layout.tsx      # Main layout component
+│   └── forms/          # Form components
+│       └── FormInput.tsx
 ├── pages/              # Page components
 │   ├── auth/          # Authentication pages
 │   │   ├── LoginPage.tsx
 │   │   └── RegisterPage.tsx
-│   ├── DashboardPage.tsx
-│   └── LandingPage.tsx
+│   └── DashboardPage.tsx
 ├── store/              # Zustand state management
 │   └── authStore.ts
 ├── services/           # API services
@@ -143,20 +138,9 @@ The system supports multiple user roles:
 
 ## 📱 Pages
 
-### Landing Page
-- **Hero Section** - Eye-catching introduction with call-to-action
-- **Features Section** - Highlight key features and benefits
-- **Statistics** - Display impressive numbers and social proof
-- **Responsive Design** - Beautiful layout on all devices
-
 ### Authentication Pages
 - **Login Page** - Clean login form with validation
 - **Register Page** - Comprehensive registration form
-
-### Navigation
-- **Responsive Navigation** - Works on desktop and mobile
-- **User Menu** - Profile dropdown with user actions
-- **Route Highlighting** - Active page indication
 
 ### Dashboard
 - **User Dashboard** - Personalized user dashboard
