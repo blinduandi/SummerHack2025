@@ -25,7 +25,7 @@ class StoreUserRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'user_type' => 'required|in:student,teacher',
+            'role' => 'required|in:student,teacher',
             'bio' => 'nullable|string|max:1000',
             'avatar' => 'nullable|string|max:255',
         ];
@@ -44,8 +44,8 @@ class StoreUserRequest extends FormRequest
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters long.',
             'password.confirmed' => 'Password confirmation does not match.',
-            'user_type.required' => 'User type is required.',
-            'user_type.in' => 'User type must be either student or teacher.',
+            'role.required' => 'User type is required.',
+            'role.in' => 'User type must be either student or teacher.',
         ];
     }
 }
