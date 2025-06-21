@@ -75,7 +75,7 @@ class ProgramController extends Controller
         }
 
         $program = Program::create([
-            ...$request->validated(),
+            ...$validator->validated(),
             'created_by' => $request->user()->id,
         ]);
 
@@ -114,7 +114,7 @@ class ProgramController extends Controller
             ], 422);
         }
 
-        $program->update($request->validated());
+        $program->update($validator->validated());
         $program->load('creator');
 
         return response()->json([
