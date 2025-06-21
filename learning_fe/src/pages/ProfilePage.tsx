@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -33,8 +33,9 @@ import {
   Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks';
+import { useAuthStore } from '../store';
 import { UserAvatar } from '../utils';
-import { AuthAPI, ProgressAPI } from '../services/api';
+import { AuthAPI } from '../services/api';
 
 // Glass morphism styled components
 const GlassCard = styled(Card)(({ theme }) => ({
@@ -87,13 +88,26 @@ export const ProfilePage: React.FC = () => {
     email: user?.email || '',
     bio: user?.bio || '',
   });
-
   const [settings, setSettings] = useState({
     emailNotifications: true,
     pushNotifications: false,
     profileVisibility: true,
     learningReminders: true,
   });
+  // Sync form data with user data when user changes
+  useEffect(() => {
+    console.log('[ProfilePage] User data changed:', user);
+    if (user) {
+      const newFormData = {
+        name: user.name || '',
+        email: user.email || '',
+        bio: user.bio || '',
+      };
+      console.log('[ProfilePage] Updating form data:', newFormData);
+      setFormData(newFormData);
+    }
+  }, [user]);
+
   const stats = [
     {
       title: 'Courses Enrolled',
@@ -131,27 +145,74 @@ export const ProfilePage: React.FC = () => {
 
   if (!user) {
     return null;
-  }
+  }  const handleSave = async () => {
+    // Validate email format
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
 
-  const handleSave = async () => {
+    // Validate required fields
+    if (!formData.name.trim()) {
+      setError('Name is required');
+      return;
+    }
+
     setSaving(true);
     setError(null);
     
+    // Prepare the update data
+    const updateData = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      bio: formData.bio.trim(),
+    };
+    
     try {
-      const response = await AuthAPI.updateProfile({
-        name: formData.name,
-        bio: formData.bio,
-      });
+      console.log('[ProfilePage] Updating profile with data:', updateData);
+
+      const response = await AuthAPI.updateProfile(updateData);
       
-      if (response.success) {
-        setSuccessMessage('Profile updated successfully!');
+      console.log('[ProfilePage] Update profile response:', response);
+        if (response.success) {
+        // 🚀 OPTIMISTIC UPDATE: Immediately update the UI with the new data
+        // This provides instant feedback while the server processes the request
+        const { login } = useAuthStore.getState();
+        const currentTokens = useAuthStore.getState().tokens;
+        
+        if (currentTokens && user) {
+          // Create updated user object for immediate UI update
+          const updatedUser = {
+            ...user,
+            name: updateData.name,
+            email: updateData.email,
+            bio: updateData.bio,
+          };
+          
+          // Immediately update the store for instant UI response
+          login(updatedUser, currentTokens);
+          console.log('[ProfilePage] ✅ User data updated instantly for immediate UI update');
+        }
+          setSuccessMessage('Profile updated successfully!');
         setIsEditing(false);
-        // Refresh user data
-        await refreshUser();
+        
+        // Small delay to show the save animation completed
+        setTimeout(() => {
+          // Do a background refresh to ensure data consistency with server
+          // This won't block the UI but ensures we have the latest data
+          refreshUser().then(() => {
+            console.log('[ProfilePage] Background refresh completed');
+          }).catch(error => {
+            console.warn('[ProfilePage] Background refresh failed:', error);
+            // Don't show error to user since the optimistic update already worked
+          });
+        }, 100);
+        
       } else {
         setError(response.error?.message || 'Failed to update profile');
       }
     } catch (error) {
+      console.error('Profile update error:', error);
       setError('An unexpected error occurred while updating profile');
     } finally {
       setSaving(false);
@@ -259,8 +320,11 @@ export const ProfilePage: React.FC = () => {
                     <Button
                       variant="contained"
                       startIcon={isSaving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-                      onClick={handleSave}
-                      disabled={isSaving}
+                      onClick={handleSave}                      disabled={
+                        isSaving || 
+                        !formData.name.trim() || 
+                        Boolean(formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+                      }
                     >
                       {isSaving ? 'Saving...' : 'Save'}
                     </Button>
@@ -278,21 +342,28 @@ export const ProfilePage: React.FC = () => {
 
               <Stack spacing={3}>
                 {isEditing ? (
-                  <>
-                    <TextField
+                  <>                    <TextField
                       label="Full Name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       fullWidth
                       variant="outlined"
-                    />
-                    <TextField
+                      required
+                      error={!formData.name.trim()}
+                      helperText={!formData.name.trim() ? 'Name is required' : ''}
+                    /><TextField
                       label="Email Address"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       fullWidth
                       variant="outlined"
                       type="email"
+                      error={Boolean(formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))}
+                      helperText={
+                        formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+                          ? 'Please enter a valid email address'
+                          : ''
+                      }
                     />
                     <TextField
                       label="Bio"

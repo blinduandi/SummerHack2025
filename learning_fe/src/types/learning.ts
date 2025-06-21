@@ -11,6 +11,7 @@ export interface Course {
   is_active: boolean;
   programming_language_id: number;
   teacher_id: number;
+  thumbnail?: string; // URL to course thumbnail image
   created_at: string;
   updated_at: string;
   programming_language?: ProgrammingLanguage;
@@ -166,6 +167,7 @@ export interface SendChatMessageRequest {
 
 export interface UpdateProfileRequest {
   name?: string;
+  email?: string;
   language_preference?: string;
   bio?: string;
 }

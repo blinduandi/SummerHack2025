@@ -3,3 +3,4 @@ export * from './auth/RegisterPage';
 export * from './DashboardPage';
 export * from './LandingPage';
 export * from './ProfilePage';
+export * from './CoursePage';

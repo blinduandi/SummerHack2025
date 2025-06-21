@@ -2,7 +2,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
-  user_type: 'student' | 'teacher' | null;
+  user_type: 'student' | 'teacher' | 'ong' | null;
   bio?: string | null;
   avatar?: string | null;
   skills?: any | null;
@@ -23,7 +23,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   password_confirmation: string;
-  user_type: 'student' | 'teacher';
+  user_type: 'student' | 'teacher' | 'ong';
   bio?: string;
   avatar?: string; // URL to uploaded avatar
 }

@@ -47,8 +47,14 @@ const GlassCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-// Helper function to get course thumbnail based on programming language
-const getCourseThumbnail = (course: Course): string => {
+// Helper function to get course thumbnail - URL if available, emoji fallback
+const getCourseThumbnail = (course: Course): { type: 'image' | 'emoji'; value: string } => {
+  // If course has a thumbnail URL, use it
+  if (course.thumbnail && course.thumbnail.trim()) {
+    return { type: 'image', value: course.thumbnail };
+  }
+  
+  // Fallback to emoji based on programming language
   const language = course.programming_language?.name?.toLowerCase() || '';
   const thumbnails: { [key: string]: string } = {
     javascript: '🚀',
@@ -64,12 +70,7 @@ const getCourseThumbnail = (course: Course): string => {
     default: '📚'
   };
   
-  return thumbnails[language] || thumbnails.default;
-};
-
-// Helper function to get instructor name
-const getInstructorName = (course: Course): string => {
-  return course.teacher?.name || 'Unknown Instructor';
+  return { type: 'emoji', value: thumbnails[language] || thumbnails.default };
 };
 
 // Helper function to calculate progress from enrollment
@@ -259,11 +260,11 @@ export const DashboardPage: React.FC = () => {
                   Browse recommended courses below to get started
                 </Typography>
               </Box>
-            ) : (
-              enrolledCourses.map((course) => {
+            ) : (              enrolledCourses.map((course) => {
               const progress = getCourseProgress(course);
+              const thumbnail = getCourseThumbnail(course);
               return (
-              <CourseCard key={course.id}>
+              <CourseCard key={course.id} onClick={() => navigate(`/course/${course.id}`)}>
                 <CardContent sx={{ p: 3 }}>
                   <Stack spacing={2}>
                     {/* Course Header */}
@@ -271,18 +272,50 @@ export const DashboardPage: React.FC = () => {
                       <Box
                         className="course-image"
                         sx={{
-                          fontSize: '3rem',
+                          width: 64,
+                          height: 64,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
                           transition: 'transform 0.3s ease',
+                          backgroundColor: thumbnail.type === 'emoji' ? 'transparent' : 'grey.100',
+                          ...(thumbnail.type === 'emoji' && {
+                            fontSize: '3rem',
+                          }),
                         }}
                       >
-                        {getCourseThumbnail(course)}
-                      </Box>
-                      <Box sx={{ flex: 1 }}>
+                        {thumbnail.type === 'image' ? (
+                          <img
+                            src={thumbnail.value}
+                            alt={course.title}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: 8,
+                            }}
+                            onError={(e) => {
+                              // Fallback to emoji if image fails to load
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '📚';
+                                parent.style.fontSize = '3rem';
+                                parent.style.backgroundColor = 'transparent';
+                              }
+                            }}
+                          />
+                        ) : (
+                          thumbnail.value
+                        )}
+                      </Box>                      <Box sx={{ flex: 1 }}>
                         <Typography variant="h6" fontWeight="bold" gutterBottom>
                           {course.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          by {getInstructorName(course)}
+                          by {course.teacher?.name || 'Unknown Instructor'}
                         </Typography>
                       </Box>
                       <IconButton size="small">
@@ -374,9 +407,10 @@ export const DashboardPage: React.FC = () => {
                   Check back later for new course recommendations
                 </Typography>
               </Box>
-            ) : (
-              recommendedCourses.map((course) => (
-              <CourseCard key={course.id}>
+            ) : (              recommendedCourses.map((course) => {
+                const thumbnail = getCourseThumbnail(course);
+                return (
+              <CourseCard key={course.id} onClick={() => navigate(`/course/${course.id}`)}>
                 <CardContent sx={{ p: 3 }}>
                   <Stack spacing={2}>
                     {/* Course Header */}
@@ -384,18 +418,50 @@ export const DashboardPage: React.FC = () => {
                       <Box
                         className="course-image"
                         sx={{
-                          fontSize: '2.5rem',
+                          width: 48,
+                          height: 48,
+                          borderRadius: 2,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          overflow: 'hidden',
                           transition: 'transform 0.3s ease',
+                          backgroundColor: thumbnail.type === 'emoji' ? 'transparent' : 'grey.100',
+                          ...(thumbnail.type === 'emoji' && {
+                            fontSize: '2.5rem',
+                          }),
                         }}
                       >
-                        {getCourseThumbnail(course)}
-                      </Box>
-                      <Box sx={{ flex: 1 }}>
+                        {thumbnail.type === 'image' ? (
+                          <img
+                            src={thumbnail.value}
+                            alt={course.title}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              borderRadius: 8,
+                            }}
+                            onError={(e) => {
+                              // Fallback to emoji if image fails to load
+                              const target = e.target as HTMLImageElement;
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = '📚';
+                                parent.style.fontSize = '2.5rem';
+                                parent.style.backgroundColor = 'transparent';
+                              }
+                            }}
+                          />
+                        ) : (
+                          thumbnail.value
+                        )}
+                      </Box>                      <Box sx={{ flex: 1 }}>
                         <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: '1rem' }}>
                           {course.title}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                          by {getInstructorName(course)}
+                          by {course.teacher?.name || 'Unknown Instructor'}
                         </Typography>
                       </Box>
                     </Stack>
@@ -422,20 +488,22 @@ export const DashboardPage: React.FC = () => {
                           <Typography variant="caption">{formatDuration(course.estimated_duration_hours)}</Typography>
                         </Stack>
                       </Stack>
-                    </Stack>
-
-                    {/* Enroll Button */}
+                    </Stack>                    {/* Enroll Button */}
                     <Button
                       variant="outlined"
                       fullWidth
                       sx={{ mt: 2 }}
-                      onClick={() => handleEnrollInCourse(course.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEnrollInCourse(course.id);
+                      }}
                     >
                       Enroll Now
-                    </Button>
-                  </Stack>
-                </CardContent>              </CourseCard>
-            )))}
+                    </Button></Stack>
+                </CardContent>
+              </CourseCard>
+              );
+            }))}
           </Box>
         </CardContent>
       </GlassCard>

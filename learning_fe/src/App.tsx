@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { CssBaseline, Box } from '@mui/material';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { Layout, ProtectedRoute, ErrorBoundary } from './components';
-import { LoginPage, RegisterPage, DashboardPage, LandingPage, ProfilePage } from './pages';
+import { LoginPage, RegisterPage, DashboardPage, LandingPage, ProfilePage, CoursePage } from './pages';
 
 function App() {  return (
     <ErrorBoundary>
@@ -51,13 +51,22 @@ function App() {  return (
                 </Layout>
               </ProtectedRoute>
             }
-          />
-          <Route
+          />          <Route
             path="/profile"
             element={
               <ProtectedRoute>
                 <Layout>
                   <ProfilePage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/course/:courseId"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CoursePage />
                 </Layout>
               </ProtectedRoute>
             }

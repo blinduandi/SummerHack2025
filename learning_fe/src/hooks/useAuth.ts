@@ -41,7 +41,7 @@ export const useAuth = () => {
         console.log('[useAuth] Has tokens but no user, fetching profile...');
         setLoading(true);
         try {
-          const response = await AuthAPI.getProfile();
+          const response = await AuthAPI.getCurrentProfile();
           console.log('[useAuth] Profile fetch response:', response);
           
           if (response.success && response.data) {
@@ -164,12 +164,11 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const handleRegister = async (
+  };  const handleRegister = async (
     email: string,
     password: string,
     name: string,
-    user_type: 'student' | 'teacher' = 'student',
+    user_type: 'student' | 'teacher' | 'ong' = 'student',
     bio?: string,
     avatar?: string
   ): Promise<boolean> => {
@@ -262,7 +261,7 @@ export const useAuth = () => {
   const handleLogout = async (): Promise<void> => {
     setLoading(true);
     try {
-      await AuthAPI.logout();
+      await AuthAPI.logoutUser();
     } catch (error) {
       // Continue with logout even if API call fails
     } finally {
@@ -270,20 +269,25 @@ export const useAuth = () => {
       setLoading(false);
     }
   };
-
   const refreshUser = async (): Promise<boolean> => {
     if (!tokens?.accessToken) return false;
     
     setLoading(true);
     try {
-      const response = await AuthAPI.getProfile();
+      console.log('[useAuth] Refreshing user data...');
+      const response = await AuthAPI.getCurrentProfile();
+      console.log('[useAuth] Profile refresh response:', response);
+      
       if (response.success && response.data) {
+        console.log('[useAuth] Profile refresh successful, updating user data:', response.data);
         login(response.data, tokens);
         return true;
       } else {
+        console.log('[useAuth] Profile refresh failed:', response.error);
         return false;
       }
     } catch (error) {
+      console.error('[useAuth] Profile refresh error:', error);
       return false;
     } finally {
       setLoading(false);

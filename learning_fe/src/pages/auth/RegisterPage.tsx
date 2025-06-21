@@ -19,15 +19,19 @@ import {
   useTheme,
   ThemeProvider,
   createTheme,
-  CssBaseline,
+  CssBaseline,  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
   Visibility,
   VisibilityOff,
   Code as CodeIcon,
+  School as SchoolIcon,
+  Person as TeacherIcon,
+  Favorite as OngIcon,
 } from '@mui/icons-material';
 import { LoadingButton, FormInput } from '../../components';
-import { AvatarUpload } from '../../components/ui/AvatarUpload';
+import AvatarUpload from '../../components/ui/AvatarUpload';
 import { useAuth } from '../../hooks';
 
 interface RegisterFormData {
@@ -36,6 +40,7 @@ interface RegisterFormData {
   password: string;
   confirmPassword: string;
   bio: string;
+  user_type: 'student' | 'teacher' | 'ong';
   avatar?: string | null;
 }
 
@@ -63,6 +68,10 @@ const schema = yup.object().shape({
     .string()
     .max(500, 'Bio must be less than 500 characters')
     .default(''),
+  user_type: yup
+    .string()
+    .oneOf(['student', 'teacher', 'ong'], 'Please select a valid user type')
+    .required('Please select your user type'),
 });
 
 // Create dark theme matching the landing page
@@ -241,16 +250,16 @@ export const RegisterPage: React.FC = () => {
       password: '',
       confirmPassword: '',
       bio: '',
+      user_type: 'student' as const,
       avatar: null,
     },
   });  const onSubmit = async (data: RegisterFormData) => {
     console.log('[RegisterPage] Registration form submitted');
-    clearError();
-      const success = await register(
+    clearError();    const success = await register(
       data.email,
       data.password,
       data.name,
-      'student', // default user_type
+      data.user_type, // Use selected user_type instead of hardcoded 'student'
       data.bio?.trim() || undefined,
       data.avatar || undefined
     );
@@ -371,9 +380,7 @@ export const RegisterPage: React.FC = () => {
                           },                        }}
                       />
                     )}
-                  />
-
-                  {/* Avatar Upload */}
+                  />                  {/* Avatar Upload */}
                   <Controller
                     name="avatar"
                     control={control}
@@ -560,7 +567,104 @@ export const RegisterPage: React.FC = () => {
                             </InputAdornment>
                           ),
                         }}
-                      />
+                      />                    )}
+                  />
+
+                  {/* User Type Selection */}
+                  <Controller
+                    name="user_type"
+                    control={control}
+                    render={({ field }) => (
+                      <Box>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            mb: 2, 
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            fontWeight: 500 
+                          }}
+                        >
+                          I am a... *
+                        </Typography>
+                        <ToggleButtonGroup
+                          value={field.value}
+                          exclusive
+                          onChange={(_, newValue) => {
+                            if (newValue !== null) {
+                              field.onChange(newValue);
+                            }
+                          }}
+                          sx={{
+                            width: '100%',
+                            '& .MuiToggleButton-root': {
+                              flex: 1,
+                              flexDirection: 'column',
+                              py: 2,
+                              px: 1,
+                              border: '1px solid rgba(99, 102, 241, 0.3)',
+                              backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                              color: 'rgba(255, 255, 255, 0.7)',
+                              transition: 'all 0.3s ease',
+                              '&:hover': {
+                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                borderColor: 'rgba(99, 102, 241, 0.5)',
+                                color: 'rgba(255, 255, 255, 0.9)',
+                              },
+                              '&.Mui-selected': {
+                                backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                                borderColor: theme.palette.primary.main,
+                                color: theme.palette.primary.main,
+                                '&:hover': {
+                                  backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                                },
+                              },
+                            },
+                          }}
+                        >
+                          <ToggleButton value="student">
+                            <SchoolIcon sx={{ mb: 1, fontSize: 28 }} />
+                            <Typography variant="body2" fontWeight="medium">
+                              Student
+                            </Typography>
+                            <Typography variant="caption" sx={{ mt: 0.5, opacity: 0.8 }}>
+                              Learn new skills
+                            </Typography>
+                          </ToggleButton>
+                          
+                          <ToggleButton value="teacher">
+                            <TeacherIcon sx={{ mb: 1, fontSize: 28 }} />
+                            <Typography variant="body2" fontWeight="medium">
+                              Teacher
+                            </Typography>
+                            <Typography variant="caption" sx={{ mt: 0.5, opacity: 0.8 }}>
+                              Share knowledge
+                            </Typography>
+                          </ToggleButton>
+                          
+                          <ToggleButton value="ong">
+                            <OngIcon sx={{ mb: 1, fontSize: 28 }} />
+                            <Typography variant="body2" fontWeight="medium">
+                              NGO
+                            </Typography>
+                            <Typography variant="caption" sx={{ mt: 0.5, opacity: 0.8 }}>
+                              Social impact
+                            </Typography>
+                          </ToggleButton>
+                        </ToggleButtonGroup>
+                        {errors.user_type && (
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              color: 'error.main', 
+                              mt: 1, 
+                              display: 'block',
+                              ml: 1
+                            }}
+                          >
+                            {errors.user_type.message}
+                          </Typography>
+                        )}
+                      </Box>
                     )}
                   />
 

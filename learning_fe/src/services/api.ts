@@ -217,17 +217,18 @@ class AuthAPI {
         success: false,
       };
     }
-  }
-  /**
+  }  /**
    * Register new user
    */
   static async register(credentials: RegisterCredentials): Promise<ApiResponse<AuthResponse>> {
-    try {      const payload: any = {
+    try {
+      // Map frontend user_type to backend role field
+      const payload: any = {
         name: credentials.name,
         email: credentials.email,
         password: credentials.password,
         password_confirmation: credentials.password_confirmation,
-        user_type: credentials.user_type,
+        role: credentials.user_type, // Backend expects 'role' field
       };
       
       // Only include bio if it's provided and not empty
