@@ -13,14 +13,9 @@ class CourseController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = Course::with(['creator', 'programmingLanguage', 'program'])
+        $query = Course::with(['creator', 'programmingLanguage'])
             ->active()
             ->latest();
-
-        // Filter by program
-        if ($request->has('program_id')) {
-            $query->where('program_id', $request->program_id);
-        }
 
         // Filter by programming language
         if ($request->has('language_id')) {
@@ -54,7 +49,6 @@ class CourseController extends Controller
         $course->load([
             'creator',
             'programmingLanguage',
-            'program',
             'steps' => function($query) {
                 $query->active()->ordered();
             }
@@ -82,8 +76,6 @@ class CourseController extends Controller
             'content' => 'nullable|string',
             'difficulty_level' => 'required|in:beginner,intermediate,advanced',
             'estimated_duration_hours' => 'nullable|integer|min:1',
-            'order_in_program' => 'nullable|integer|min:0',
-            'program_id' => 'nullable|exists:programs,id',
             'programming_language_id' => 'nullable|exists:programming_languages,id',
             'is_active' => 'boolean',
         ]);
@@ -100,28 +92,16 @@ class CourseController extends Controller
         // Get validated data from validator
         $validatedData = $validator->validated();
 
-        // If program_id is provided, check if user owns the program
-        if (isset($validatedData['program_id'])) {
-            $program = Program::find($validatedData['program_id']);
-            if ($program && $program->created_by !== $request->user()->id) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You can only add courses to your own programs'
-                ], 403);
-            }
-        }
-
         // Add default values for fields that might not be present
         $courseData = array_merge([
             'is_active' => true,
-            'order_in_program' => 0,
         ], $validatedData, [
             'created_by' => $request->user()->id,
         ]);
 
         $course = Course::create($courseData);
 
-        $course->load(['creator', 'programmingLanguage', 'program']);
+        $course->load(['creator', 'programmingLanguage']);
 
         return response()->json([
             'success' => true,
@@ -146,7 +126,6 @@ class CourseController extends Controller
             'content' => 'sometimes|nullable|string',
             'difficulty_level' => 'sometimes|in:beginner,intermediate,advanced',
             'estimated_duration_hours' => 'sometimes|nullable|integer|min:1',
-            'order_in_program' => 'sometimes|nullable|integer|min:0',
             'programming_language_id' => 'sometimes|nullable|exists:programming_languages,id',
             'is_active' => 'sometimes|boolean',
         ]);
@@ -160,7 +139,7 @@ class CourseController extends Controller
         }
 
         $course->update($validator->validated());
-        $course->load(['creator', 'programmingLanguage', 'program']);
+        $course->load(['creator', 'programmingLanguage']);
 
         return response()->json([
             'success' => true,

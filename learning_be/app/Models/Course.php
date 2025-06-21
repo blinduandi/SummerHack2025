@@ -17,9 +17,7 @@ class Course extends Model
         'content',
         'difficulty_level',
         'estimated_duration_hours',
-        'order_in_program',
         'is_active',
-        'program_id',
         'programming_language_id',
         'created_by',
     ];
@@ -27,15 +25,9 @@ class Course extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'estimated_duration_hours' => 'integer',
-        'order_in_program' => 'integer',
     ];
 
     // Relationships
-    public function program(): BelongsTo
-    {
-        return $this->belongsTo(Program::class);
-    }
-
     public function programmingLanguage(): BelongsTo
     {
         return $this->belongsTo(ProgrammingLanguage::class);
@@ -69,6 +61,11 @@ class Course extends Model
     public function recommendations(): HasMany
     {
         return $this->hasMany(CourseRecommendation::class);
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class);
     }
 
     // Scopes
