@@ -49,9 +49,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Progress tracking
     Route::prefix('progress')->group(function () {
         Route::get('user', [ProgressController::class, 'getUserProgress']);
+        Route::get('user/steps', [ProgressController::class, 'getAllUserStepProgress']);
+        Route::post('steps/bulk-update', [ProgressController::class, 'bulkUpdateStepProgress']);
         Route::get('course/{course}', [ProgressController::class, 'getCourseProgress']);
         Route::put('course/{course}', [ProgressController::class, 'updateCourseProgress']);
         Route::get('course/{course}/steps', [ProgressController::class, 'getCourseStepsProgress']);
+        Route::get('course/{course}/steps/status', [ProgressController::class, 'getCourseStepsStatus']);
         Route::get('step/{step}', [ProgressController::class, 'getStepProgress']);
         Route::put('step/{step}', [ProgressController::class, 'updateStepProgress']);
     });
