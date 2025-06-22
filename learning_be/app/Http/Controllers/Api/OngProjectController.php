@@ -97,32 +97,43 @@ class OngProjectController extends Controller
     // ONG selects the winning project
     public function selectWinner(Request $request, OngProject $project, OngProjectApplication $application): JsonResponse
     {
-        if ($request->user()->id !== $project->ong_id) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
-        }
-        $project->update([
-            'winner_user_id' => $application->user_id,
-            'status' => 'closed',
-        ]);
-        $application->update(['status' => 'winner']);
-        // Notify all applicants
-        $allApplications = $project->applications()->with('user')->get();
-        foreach ($allApplications as $app) {
-            $user = $app->user;
-            if ($user && $user->telegram_chat_id) {
-                if ($app->id == $application->id) {
-                    $this->telegram->sendMessage(
-                        $user->telegram_chat_id,
-                        "Congratulations! Your project submission for '{$project->title}' was selected as the winner!"
-                    );
-                } else {
-                    $this->telegram->sendMessage(
-                        $user->telegram_chat_id,
-                        "Thank you for participating in '{$project->title}'. Unfortunately, your project was not selected."
-                    );
+        try {
+            if ($request->user()->id !== $project->ong_id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+            }
+            $project->update([
+                'winner_user_id' => $application->user_id,
+                'status' => 'closed',
+            ]);
+            $application->update(['status' => 'accepted']);
+            // Update all other applications to 'rejected' and notify applicants
+            $allApplications = $project->applications()->with('user')->get();
+            foreach ($allApplications as $app) {
+                if ($app->id !== $application->id) {
+                    $app->update(['status' => 'rejected']);
+                }
+                $user = $app->user;
+                if ($user) {
+                    if ($app->id == $application->id) {
+                        $this->telegram->sendMessage(
+                            // $user->telegram_chat_id,
+                            "Congratulations! Your project submission for '{$project->title}' was selected as the winner!"
+                        );
+                    } else {
+                        $this->telegram->sendMessage(
+                            // $user->telegram_chat_id,
+                            "Thank you for participating in '{$project->title}'. Unfortunately, your project was not selected."
+                        );
+                    }
                 }
             }
+            return response()->json(['success' => true, 'message' => 'Winner selected.', 'data' => $application]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => true,
+                'message' => $e->getMessage(),
+            ], 500);
         }
-        return response()->json(['success' => true, 'message' => 'Winner selected.', 'data' => $application]);
     }
 }

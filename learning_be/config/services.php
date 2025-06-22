@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Third Party Services
@@ -46,4 +45,7 @@ return [
         'base_url' => env('CODERABBIT_BASE_URL', 'https://api.coderabbit.ai'),
     ],
 
+    'telegram' => [
+        'bot_token' => env('TELEGRAM_BOT_TOKEN'),
+    ],
 ];
