@@ -92,6 +92,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ONG Project routes
+    Route::get('ong-projects', [OngProjectController::class, 'index']);
+    Route::get('ong-projects/my-projects', [OngProjectController::class, 'myProjects']);
+    Route::get('ong-projects/my-applications', [OngProjectController::class, 'myApplications']);
+    Route::get('ong-projects/{project}', [OngProjectController::class, 'show']);
     Route::post('ong-projects', [OngProjectController::class, 'store']);
     Route::post('ong-projects/{project}/apply', [OngProjectController::class, 'apply']);
     Route::get('ong-projects/{project}/applicants', [OngProjectController::class, 'applicants']);

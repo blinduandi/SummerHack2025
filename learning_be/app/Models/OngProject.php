@@ -39,4 +39,9 @@ class OngProject extends Model
     {
         return $this->belongsTo(User::class, 'winner_user_id');
     }
+
+    public function ong()
+    {
+        return $this->belongsTo(User::class, 'ong_id');
+    }
 }

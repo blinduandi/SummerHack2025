@@ -136,4 +136,90 @@ class OngProjectController extends Controller
             ], 500);
         }
     }
+
+    // Get all projects (with filtering)
+    public function index(Request $request): JsonResponse
+    {
+        $query = OngProject::with(['ong', 'applications.user', 'winner']);
+        
+        // Filter by status if provided
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        // Filter by ONG if user is ONG (show only their projects)
+        if ($request->user()->isOng()) {
+            $query->where('ong_id', $request->user()->id);
+        }
+        
+        // Filter by user's applications if user is student
+        if ($request->user()->isStudent() && $request->has('my_applications')) {
+            $query->whereHas('applications', function($q) use ($request) {
+                $q->where('user_id', $request->user()->id);
+            });
+        }
+        
+        $projects = $query->orderBy('created_at', 'desc')->paginate(10);
+        
+        return response()->json([
+            'success' => true,
+            'data' => $projects
+        ]);
+    }
+
+    // Get a specific project with details
+    public function show(Request $request, OngProject $project): JsonResponse
+    {
+        $project->load(['ong', 'applications.user', 'winner']);
+        
+        // If user is not ONG owner, hide sensitive information
+        if ($request->user()->id !== $project->ong_id && !$request->user()->isOng()) {
+            // For students, only show basic info and their own application if exists
+            $userApplication = $project->applications()->where('user_id', $request->user()->id)->first();
+            $project->makeHidden(['applications']);
+            $project->user_application = $userApplication;
+        }
+        
+        return response()->json([
+            'success' => true,
+            'data' => $project
+        ]);
+    }
+
+    // Get user's project statuses (for students)
+    public function myApplications(Request $request): JsonResponse
+    {
+        if (!$request->user()->isStudent()) {
+            return response()->json(['success' => false, 'message' => 'Only students can view their applications.'], 403);
+        }
+        
+        $applications = OngProjectApplication::with(['project.ong'])
+            ->where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $applications
+        ]);
+    }
+
+    // Get projects created by ONG (for ONG users)
+    public function myProjects(Request $request): JsonResponse
+    {
+        if (!$request->user()->isOng()) {
+            return response()->json(['success' => false, 'message' => 'Only ONG organizations can view their projects.'], 403);
+        }
+        
+        $projects = OngProject::with(['applications.user', 'winner'])
+            ->where('ong_id', $request->user()->id)
+            ->withCount('applications')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $projects
+        ]);
+    }
 }
