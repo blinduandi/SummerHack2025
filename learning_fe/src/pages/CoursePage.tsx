@@ -47,6 +47,8 @@ import {
 } from '@mui/icons-material';
 import { CourseAPI, ProgressAPI } from '../services/api';
 import type { Course, CourseStep, Progress } from '../types';
+import Aurora from '../blocks/Aurora/Aurora';
+import { useTheme } from '@mui/material/styles';
 
 // Glass morphism styled components
 const GlassCard = styled(Card)(({ theme }) => ({
@@ -200,7 +202,14 @@ export const CoursePage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [selectedStepForCompletion, setSelectedStepForCompletion] = useState<CourseStep | null>(null);
-  const [userNotes, setUserNotes] = useState('');useEffect(() => {
+  const [userNotes, setUserNotes] = useState('');const theme = useTheme();
+  const auroraColorStops = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.primary.dark,
+  ];
+
+  useEffect(() => {
     const fetchCourseData = async () => {
       if (!courseId) return;
       
@@ -308,7 +317,7 @@ export const CoursePage: React.FC = () => {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
           The course you're looking for doesn't exist or has been removed.
         </Typography>
-        <Button variant="contained" onClick={() => navigate('/dashboard')}>
+        <Button sx={{color:'white !important'}} onClick={() => navigate('/dashboard')}>
           Back to Dashboard
         </Button>
       </Box>
@@ -553,32 +562,34 @@ export const CoursePage: React.FC = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      bgcolor: 'background.default', 
+      bgcolor: 'transparent',
       position: 'relative',
     }}>
-      {/* Animated background */}
+      {/* Aurora animated background */}
       <Box
         sx={{
           position: 'fixed',
+          width: '100%',
+          height: '100%',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
           zIndex: -1,
-          background: (theme) => theme.palette.mode === 'dark'
-            ? `radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-               radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 50%)`
-            : `radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-               radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.08) 0%, transparent 50%)`,
         }}
-      />
+      >
+        <Aurora
+          colorStops={auroraColorStops}
+          blend={6}
+          speed={1.5}
+          amplitude={0.5}
+        />
+      </Box>
 
       <Box sx={{ p: { xs: 2, md: 4 } }}>
         {/* Back Button */}
         <Button
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate('/dashboard')}
-          sx={{ mb: 3, opacity: 0.8 }}
+          sx={{ mb: 3, opacity: 0.8, color: 'white' }}
         >
           Back to Dashboard
         </Button>
@@ -635,9 +646,7 @@ export const CoursePage: React.FC = () => {
                       <Typography variant="h3" fontWeight="bold" gutterBottom>
                         {course.title}
                       </Typography>
-                      <Typography variant="h6" color="text.secondary">
-                        by {course.teacher?.name || 'Unknown Instructor'}
-                      </Typography>
+                      
                     </Box>
                     
                     <Stack direction="row" spacing={1}>

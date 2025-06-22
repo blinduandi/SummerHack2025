@@ -37,17 +37,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 // Glass morphism styled AppBar
 const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
-  backgroundColor: scrolled 
-    ? alpha('#0a0a0a', 0.95)
-    : alpha('#0a0a0a', 0.85),
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
-  borderBottom: scrolled 
-    ? `1px solid ${alpha('#ffffff', 0.15)}` 
-    : `1px solid ${alpha('#ffffff', 0.08)}`,
-  boxShadow: scrolled 
-    ? `0 8px 32px ${alpha('#000000', 0.6)}` 
-    : `0 4px 16px ${alpha('#000000', 0.3)}`,
+  backgroundColor: 'transparent',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
@@ -58,9 +48,6 @@ const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: scrolled
-      ? `linear-gradient(135deg, ${alpha('#6366f1', 0.12)} 0%, ${alpha('#06b6d4', 0.08)} 50%, ${alpha('#8b5cf6', 0.06)} 100%)`
-      : `linear-gradient(135deg, ${alpha('#6366f1', 0.08)} 0%, ${alpha('#06b6d4', 0.05)} 50%, ${alpha('#8b5cf6', 0.04)} 100%)`,
     zIndex: -1,
     animation: 'shimmer 8s ease-in-out infinite alternate',
   },
@@ -77,9 +64,9 @@ const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
 // Glass morphism styled Menu
 const GlassMenu = styled(Menu)(() => ({
   '& .MuiPaper-root': {
-    backgroundColor: alpha('#0a0a0a', 0.9),
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
+   backgroundColor: 'transparent', // Fully transparent
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
     border: `1px solid ${alpha('#ffffff', 0.12)}`,
     borderRadius: 16,
     boxShadow: `0 20px 40px ${alpha('#000000', 0.6)}, 0 8px 16px ${alpha('#000000', 0.4)}`,
@@ -92,8 +79,8 @@ const GlassMenu = styled(Menu)(() => ({
       left: 0,
       right: 0,
       bottom: 0,
-      background: `linear-gradient(135deg, ${alpha('#6366f1', 0.08)} 0%, ${alpha('#06b6d4', 0.05)} 100%)`,
-      borderRadius: 'inherit',
+      // background: `linear-gradient(135deg, ${alpha('#6366f1', 0.08)} 0%, ${alpha('#06b6d4', 0.05)} 100%)`,
+      // borderRadius: 'inherit',
       zIndex: -1,
     },
   },
@@ -117,11 +104,7 @@ const GlassMenu = styled(Menu)(() => ({
 // Glass morphism styled Drawer
 const GlassDrawer = styled(Drawer)(() => ({
   '& .MuiDrawer-paper': {
-    backgroundColor: alpha('#0a0a0a', 0.95),
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: `1px solid ${alpha('#ffffff', 0.1)}`,
-    borderLeft: 'none',
+    backgroundColor: 'transparent', // Fully transparent
     position: 'relative',
     '&::before': {
       content: '""',
@@ -130,7 +113,7 @@ const GlassDrawer = styled(Drawer)(() => ({
       left: 0,
       right: 0,
       bottom: 0,
-      background: `linear-gradient(135deg, ${alpha('#6366f1', 0.1)} 0%, ${alpha('#06b6d4', 0.05)} 100%)`,
+      background: 'none',
       zIndex: -1,
     },
   },
@@ -139,7 +122,7 @@ const GlassDrawer = styled(Drawer)(() => ({
     margin: '4px 8px',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     '&:hover': {
-      backgroundColor: alpha('#ffffff', 0.08),
+      // backgroundColor: alpha('#ffffff', 0.08),
       transform: 'translateX(4px)',
     },
   },
@@ -240,13 +223,13 @@ export const Navigation: React.FC = () => {
           variant="h6" 
           fontWeight="bold"
           sx={{
-            background: 'linear-gradient(135deg, #818cf8 0%, #06b6d4 100%)',
+            background: 'transparent',
             backgroundClip: 'text',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}
         >
-          EduFlow
+          CodePath Ai
         </Typography>
       </Box>
       <List sx={{ px: 1 }}>
@@ -259,7 +242,7 @@ export const Navigation: React.FC = () => {
             sx={{
               color: '#ffffff',
               textDecoration: 'none',
-              backgroundColor: location.pathname === item.path ? alpha('#6366f1', 0.15) : 'transparent',
+              backgroundColor: location.pathname === item.path ? alpha('#6366f1+', 0.15) : 'transparent',
               '&:hover': {
                 backgroundColor: alpha('#ffffff', 0.08),
               },
@@ -294,7 +277,11 @@ export const Navigation: React.FC = () => {
 
   return (
     <>
-      <GlassAppBar position="sticky" elevation={0} scrolled={scrolled}>
+      <GlassAppBar position="sticky" elevation={0} scrolled={scrolled} sx={{
+        backgroundColor: 'transparent',
+        boxShadow: 'none',
+        border: 'none',
+      }}>
         <Toolbar sx={{ padding: { xs: '0 16px', md: '0 24px' }, minHeight: '70px' }}>
           {isMobile && (
             <IconButton
@@ -324,6 +311,7 @@ export const Navigation: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
+              margin:'10px',  
               padding: '10px 16px',
               borderRadius: 14,
               background: `linear-gradient(135deg, ${alpha('#6366f1', 0.12)} 0%, ${alpha('#06b6d4', 0.08)} 100%)`,
@@ -347,7 +335,7 @@ export const Navigation: React.FC = () => {
               },
               '&:hover': {
                 transform: 'translateY(-2px) scale(1.02)',
-                boxShadow: `0 12px 40px ${alpha('#6366f1', 0.3)}`,
+                boxShadow: `0 12px 40px ${alpha('#ffffff', 0.3)}`,
                 '&::before': {
                   opacity: 1,
                 },
@@ -358,7 +346,7 @@ export const Navigation: React.FC = () => {
               variant="h6"
               sx={{
                 fontWeight: 'bold',
-                background: 'linear-gradient(135deg, #818cf8 0%, #06b6d4 100%)',
+                background: 'linear-gradient(135deg,rgb(255, 255, 255) 0%, #06b6d4 100%)',
                 backgroundClip: 'text',
                 WebkitBackdropFilter: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -366,13 +354,13 @@ export const Navigation: React.FC = () => {
                 letterSpacing: '0.5px',
               }}
             >
-              EduFlow            </Typography>
+              CodePath Ai            </Typography>
           </Box>
 
           <Box sx={{ flexGrow: 1 }} />
 
           {!isMobile && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
               {navigationItems
                 .filter(item => {
                   // Hide Login/Register buttons when authenticated
@@ -396,8 +384,8 @@ export const Navigation: React.FC = () => {
                     position: 'relative',
                     overflow: 'hidden',
                     backgroundColor: location.pathname === item.path ? alpha('#6366f1', 0.15) : alpha('#ffffff', 0.03),
-                    border: `1px solid ${location.pathname === item.path ? alpha('#818cf8', 0.3) : alpha('#ffffff', 0.08)}`,
-                    color: location.pathname === item.path ? '#818cf8' : 'inherit',
+                    border: `1px solid ${location.pathname === item.path ? 'white' : alpha('#ffffff', 0.08)}`,
+                    color: location.pathname === item.path ? 'white' : 'inherit',
                     fontSize: '0.875rem',
                     px: 2,
                     py: 1,
@@ -416,7 +404,7 @@ export const Navigation: React.FC = () => {
                     },
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      backgroundColor: alpha('#ffffff', 0.08),
+                      backgroundColor: alpha('#ffffff', 0.9),
                       boxShadow: `0 8px 25px ${alpha('#6366f1', 0.2)}`,
                       '&::before': {
                         opacity: 1,
@@ -537,7 +525,7 @@ export const Navigation: React.FC = () => {
           {error}
         </Alert>
       </Snackbar>
-    </>
+    </> 
   );
 };
 

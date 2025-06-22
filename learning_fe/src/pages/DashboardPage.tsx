@@ -26,6 +26,8 @@ import { useAuth } from '../hooks';
 import { UserAvatar } from '../utils';
 import { CourseAPI, EnrollmentAPI } from '../services/api';
 import type { Course } from '../types';
+import Aurora from '../blocks/Aurora/Aurora';
+import { useTheme } from '@mui/material/styles';
 
 // Glass morphism styled components
 const GlassCard = styled(Card)(({ theme }) => ({
@@ -106,6 +108,12 @@ const CourseCard = styled(GlassCard)(() => ({
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const theme = useTheme();
+  const auroraColorStops = [
+    theme.palette.primary.main,
+    theme.palette.secondary.main,
+    theme.palette.primary.dark,
+  ];
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);  const [loading, setLoading] = useState(true);
@@ -134,7 +142,7 @@ export const DashboardPage: React.FC = () => {
     };    fetchData();
   }, [user]);
 
-  const handleEnrollInCourse = async (courseId: number) => {
+  const   handleEnrollInCourse = async (courseId: number) => {
     try {
       const response = await EnrollmentAPI.enrollInCourse({ course_id: courseId });
       if (response.success) {
@@ -174,26 +182,28 @@ export const DashboardPage: React.FC = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      bgcolor: 'background.default', 
+      bgcolor: 'transparent',
       p: { xs: 2, md: 3 },
       position: 'relative',
     }}>
-      {/* Animated background particles */}
+      {/* Aurora animated background */}
       <Box
         sx={{
           position: 'fixed',
+          width: '100%',
+          height: '100%',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
           zIndex: -1,
-          background: (theme) => theme.palette.mode === 'dark'
-            ? `radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-               radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 50%)`
-            : `radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-               radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%)`,
         }}
-      />
+      >
+        <Aurora
+          colorStops={auroraColorStops}
+          blend={6}
+          speed={1.5}
+          amplitude={0.5}
+        />
+      </Box>
 
       {/* Welcome Section */}
       <GlassCard sx={{ mb: 4 }}>
@@ -265,8 +275,8 @@ export const DashboardPage: React.FC = () => {
               const thumbnail = getCourseThumbnail(course);
               return (
               <CourseCard key={course.id} onClick={() => navigate(`/course/${course.id}`)}>
-                <CardContent sx={{ p: 3 }}>
-                  <Stack spacing={2}>
+                <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                  <Stack spacing={2} sx={{ flex: 1 }}>
                     {/* Course Header */}
                     <Stack direction="row" alignItems="flex-start" spacing={2}>
                       <Box
@@ -314,9 +324,7 @@ export const DashboardPage: React.FC = () => {
                         <Typography variant="h6" fontWeight="bold" gutterBottom>
                           {course.title}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          by {course.teacher?.name || 'Unknown Instructor'}
-                        </Typography>
+                       
                       </Box>
                       <IconButton size="small">
                         <BookmarkIcon />
@@ -350,9 +358,11 @@ export const DashboardPage: React.FC = () => {
                         {progress.progress}% Complete
                       </Typography>
                     </Box>
-
+                  </Stack>
+                  {/* Stick both stats and button to the bottom */}
+                  <Box sx={{ mt: 'auto', width: '100%' }}>
                     {/* Course Stats */}
-                    <Stack direction="row" spacing={2}>
+                    <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', mb: 2 }}>
                       <Stack direction="row" alignItems="center" spacing={0.5}>
                         <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
                         <Typography variant="caption">4.8</Typography>
@@ -368,11 +378,14 @@ export const DashboardPage: React.FC = () => {
                       variant="contained"
                       startIcon={<PlayIcon />}
                       fullWidth
-                      sx={{ mt: 2 }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/course/${course.id}`);
+                      }}
                     >
                       Continue Learning
                     </Button>
-                  </Stack>
+                  </Box>
                 </CardContent>              </CourseCard>
               );
             }))}
@@ -411,10 +424,10 @@ export const DashboardPage: React.FC = () => {
                 const thumbnail = getCourseThumbnail(course);
                 return (
               <CourseCard key={course.id} onClick={() => navigate(`/course/${course.id}`)}>
-                <CardContent sx={{ p: 3 }}>
-                  <Stack spacing={2}>
+                <CardContent sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <Stack spacing={2} sx={{ flex: 1, justifyContent: 'space-between' }}>
                     {/* Course Header */}
-                    <Stack direction="row" alignItems="flex-start" spacing={2}>
+                    <Stack direction="row" alignItems="flex-start" spacing={2} sx={{ mb: 2 }}>
                       <Box
                         className="course-image"
                         sx={{
@@ -460,15 +473,13 @@ export const DashboardPage: React.FC = () => {
                         <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: '1rem' }}>
                           {course.title}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.875rem' }}>
-                          by {course.teacher?.name || 'Unknown Instructor'}
-                        </Typography>
+                        
                       </Box>
                     </Stack>
 
                     {/* Course Stats */}
                     <Stack spacing={1}>
-                      <Stack direction="row" justifyContent="space-between">
+                      <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Stack direction="row" alignItems="center" spacing={0.5}>
                           <StarIcon sx={{ fontSize: 16, color: 'warning.main' }} />
                           <Typography variant="caption">4.8</Typography>
@@ -478,7 +489,7 @@ export const DashboardPage: React.FC = () => {
                         </Typography>
                       </Stack>
                       
-                      <Stack direction="row" justifyContent="space-between">
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{display: 'flex-end'}}>
                         <Stack direction="row" alignItems="center" spacing={0.5}>
                           <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                           <Typography variant="caption">{course.enrolled_students_count || 0} students</Typography>
@@ -492,7 +503,7 @@ export const DashboardPage: React.FC = () => {
                     <Button
                       variant="outlined"
                       fullWidth
-                      sx={{ mt: 2 }}
+                      sx={{ mt: 'auto', display: 'flex-end', justifyContent: 'center' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleEnrollInCourse(course.id);
