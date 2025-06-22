@@ -1,124 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Learning Platform
 
-# Learning Platform - Backend
+## For Mentors: Project Overview
 
-## For Mentors: Project Description
+This is a comprehensive learning platform that connects students with courses and NGOs with volunteers. The project consists of two main components: a Laravel backend API and a React frontend application.
 
-This project is the backend for a learning platform designed to connect students with courses and NGOs with volunteers. The platform has the following key features:
+### Key Features:
+- **User Roles**: Students, NGOs, and Admins with role-based access control
+- **Course Management**: Students can browse, enroll in courses, and track their progress
+- **NGO Projects**: NGOs can create and manage volunteer projects; students can apply
+- **Authentication**: Secure JWT-based authentication system
+- **Modern Tech Stack**: Laravel 10 backend with React 18 TypeScript frontend
 
-- **User Roles**: Students, NGOs, and Admins.
-- **Course Management**: Students can enroll in courses, view course materials, and track their progress.
-- **ONG Projects**: NGOs can create and manage projects, and students can apply to volunteer for these projects.
-- **API**: A comprehensive RESTful API for all platform functionalities.
+## Project Structure
 
-This README provides instructions for setting up and running the backend. For more specific documentation, please refer to the following files:
+This repository contains two main directories:
 
-- [GITHUB_INTEGRATION_README.md](GITHUB_INTEGRATION_README.md)
-- [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
-- [DATABASE_STRUCTURE.md](database_structure.md)
+### Backend (Laravel API)
+📁 **[learning_be/](learning_be/README.md)** - Laravel backend with RESTful API
+- Complete setup and deployment instructions
+- API documentation and testing with Postman
+- Database structure and migrations
 
-## Setup Instructions
+### Frontend (React App)
+📁 **[learning_fe/](learning_fe/README.md)** - React TypeScript frontend
+- Modern React application with Material-UI
+- User dashboards for different roles
+- Responsive design and professional UI
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-repo/learning_be.git
-    cd learning_be
-    ```
+## Documentation
 
-2.  **Install dependencies:**
-    ```bash
-    composer install
-    ```
+For detailed information about specific aspects of the project:
 
-3.  **Create the environment file:**
-    ```bash
-    cp .env.example .env
-    ```
+- **[Backend Documentation](learning_be/README.md)** - Laravel setup, API endpoints, database
+- **[Frontend Documentation](learning_fe/README.md)** - React setup, components, architecture
+- **[GitHub Integration](learning_be/GITHUB_INTEGRATION_README.md)** - Advanced GitHub repository integration
+- **[API Documentation](learning_be/API_DOCUMENTATION.md)** - Complete API reference
+- **[Database Structure](learning_be/database_structure.md)** - Database schema and relationships
 
-4.  **Generate the application key:**
-    ```bash
-    php artisan key:generate
-    ```
+## Quick Start
 
-5.  **Configure your `.env` file** with your database credentials and other settings.
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd "Proiect invatare"
+   ```
 
-6.  **Run database migrations:**
-    ```bash
-    php artisan migrate
-    ```
+2. **Set up the backend:**
+   ```bash
+   cd learning_be
+   # Follow instructions in learning_be/README.md
+   ```
 
-7.  **Seed the database (optional):**
-    ```bash
-    php artisan db:seed
-    ```
+3. **Set up the frontend:**
+   ```bash
+   cd learning_fe
+   # Follow instructions in learning_fe/README.md
+   ```
 
-8.  **Start the development server:**
-    ```bash
-    php artisan serve
-    ```
+## API Testing
 
-## API Testing with Postman
+The backend includes a comprehensive Postman collection for API testing. You can find it at:
+- **Collection**: `learning_be/postman/Laravel_Learning_Platform_CodeRabbit.postman_collection.json`
+- **Environment**: `learning_be/postman/Laravel_Learning_Platform_Local.postman_environment.json`
 
-A Postman collection is included to facilitate API testing. You can find it at `postman/Laravel_Learning_Platform_CodeRabbit.postman_collection.json`.
+## Technology Stack
 
-To use it, import the collection into Postman and set up the environment using `postman/Laravel_Learning_Platform_Local.postman_environment.json`.
+### Backend
+- **Laravel 10** - PHP framework for robust API development
+- **MySQL** - Database for data persistence
+- **JWT Authentication** - Secure token-based authentication
+- **Laravel Sanctum** - API token authentication
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
-
-## About Laravel
-
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
-
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-## Laravel Sponsors
-
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
-
-### Premium Partners
-
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Frontend
+- **React 18** - Modern JavaScript library for building user interfaces
+- **TypeScript** - Type-safe development
+- **Material-UI (MUI)** - Professional component library
+- **Vite** - Fast build tool and development server
+- **Zustand** - Lightweight state management
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
