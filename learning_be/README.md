@@ -4,7 +4,7 @@
 
 ## For Mentors: Project Description
 
-This project is the backend for a learning platform designed to connect students with courses and NGOs with volunteers. The platform has the following key features:
+This project is the backend for a learning platform designed to connect students with courses and NGOs with volunteers. The frontend is a separate React application which you can find in the `learning_fe` folder. The platform has the following key features:
 
 - **User Roles**: Students, NGOs, and Admins.
 - **Course Management**: Students can enroll in courses, view course materials, and track their progress.
@@ -13,6 +13,7 @@ This project is the backend for a learning platform designed to connect students
 
 This README provides instructions for setting up and running the backend. For more specific documentation, please refer to the following files:
 
+- [Frontend Documentation](../learning_fe/README.md)
 - [GITHUB_INTEGRATION_README.md](GITHUB_INTEGRATION_README.md)
 - [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
 - [DATABASE_STRUCTURE.md](database_structure.md)
