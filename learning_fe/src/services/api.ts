@@ -29,7 +29,11 @@ import type {
   UpdateProfileRequest,
   PaginatedResponse,
   CourseQueryParams,
-  ProgressOverviewResponse
+  ProgressOverviewResponse,
+  OngProject,
+  OngProjectApplication,
+  CreateOngProjectRequest,
+  SubmitOngProjectRequest
 } from '../types';
 import { getValidatedApiUrl, logEnvironmentInfo } from '../utils';
 
@@ -220,18 +224,15 @@ class AuthAPI {
         success: false,
       };
     }
-  }  /**
-   * Register new user
-   */
-  static async register(credentials: RegisterCredentials): Promise<ApiResponse<AuthResponse>> {
-    try {
-      // Map frontend user_type to backend role field
+  }  /**   * Register new user
+   */static async register(credentials: RegisterCredentials): Promise<ApiResponse<AuthResponse>> {
+    try {      // Map frontend user_type to backend role field
       const payload: any = {
         name: credentials.name,
         email: credentials.email,
         password: credentials.password,
         password_confirmation: credentials.password_confirmation,
-        role: credentials.user_type, // Backend expects 'role' field
+        role: credentials.user_type, // Backend controller expects 'role' field
       };
       
       // Only include bio if it's provided and not empty
@@ -284,7 +285,6 @@ class AuthAPI {
       };
     }
   }
-
   /**
    * Test registration with exact payload format
    */
@@ -295,7 +295,7 @@ class AuthAPI {
         email: "student@example.com",
         password: "password123",
         password_confirmation: "password123",
-        user_type: "student",
+        role: "student", // Use 'role' to match backend validation
         bio: "Aspiring developer"
       };
       
@@ -1619,6 +1619,262 @@ class TeacherAPI {
   }
 }
 
+/**
+ * ONG Projects API endpoints
+ */
+class OngProjectAPI {  /**
+   * Create a new ONG project
+   */
+  static async createProject(data: CreateOngProjectRequest): Promise<ApiResponse<OngProject>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProject }> = await api.post('/ong-projects', data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to create project',
+          code: error.response?.data?.code || 'CREATE_PROJECT_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }  /**
+   * Get all ONG projects with optional filters (index endpoint)
+   */
+  static async getAllProjects(filters?: {
+    status?: 'open' | 'closed' | 'completed';
+    category?: string;
+    search?: string;
+    page?: number;
+    per_page?: number;
+  }): Promise<ApiResponse<OngProject[]>> {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.status) params.append('status', filters.status);
+      if (filters?.category) params.append('category', filters.category);
+      if (filters?.search) params.append('search', filters.search);
+      if (filters?.page) params.append('page', filters.page.toString());
+      if (filters?.per_page) params.append('per_page', filters.per_page.toString());
+
+      const queryString = params.toString();
+      const url = queryString ? `/ong-projects?${queryString}` : '/ong-projects';
+      
+      const response: AxiosResponse<{ success: boolean; data: { data: OngProject[] } }> = await api.get(url);
+      return {
+        data: response.data.data.data, // Handle paginated response
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch projects',
+          code: error.response?.data?.code || 'FETCH_PROJECTS_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get a specific ONG project by ID
+   */
+  static async getProject(id: number): Promise<ApiResponse<OngProject>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProject }> = await api.get(`/ong-projects/${id}`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch project',
+          code: error.response?.data?.code || 'FETCH_PROJECT_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }  /**
+   * Get ONG's own projects
+   */
+  static async getMyProjects(): Promise<ApiResponse<OngProject[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: { data: OngProject[] } }> = await api.get('/ong-projects');
+      return {
+        data: response.data.data.data, // Handle paginated response
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch my projects',
+          code: error.response?.data?.code || 'FETCH_MY_PROJECTS_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get student's applications to ONG projects
+   */
+  static async getMyApplications(): Promise<ApiResponse<OngProjectApplication[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication[] }> = await api.get('/ong-projects/my-applications');
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch my applications',
+          code: error.response?.data?.code || 'FETCH_MY_APPLICATIONS_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+  /**
+   * Apply to a project (for students)
+   */
+  static async applyToProject(projectId: number): Promise<ApiResponse<OngProjectApplication>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication }> = await api.post(`/ong-projects/${projectId}/apply`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to apply to project',
+          code: error.response?.data?.code || 'APPLY_PROJECT_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Submit project solution (for students)
+   */
+  static async submitProject(projectId: number, data: SubmitOngProjectRequest): Promise<ApiResponse<OngProjectApplication>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication }> = await api.post(`/ong-projects/${projectId}/submit`, data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to submit project',
+          code: error.response?.data?.code || 'SUBMIT_PROJECT_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get applicants for a project (for ONG)
+   */
+  static async getProjectApplicants(projectId: number): Promise<ApiResponse<OngProjectApplication[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication[] }> = await api.get(`/ong-projects/${projectId}/applicants`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch applicants',
+          code: error.response?.data?.code || 'FETCH_APPLICANTS_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+  /**
+   * Select winner for a project (for ONG)
+   */
+  static async selectWinner(projectId: number, applicationId: number): Promise<ApiResponse<OngProjectApplication>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication }> = await api.post(`/ong-projects/${projectId}/applications/${applicationId}/select-winner`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to select winner',
+          code: error.response?.data?.code || 'SELECT_WINNER_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Accept an application (for ONG)
+   */
+  static async acceptApplication(projectId: number, applicationId: number): Promise<ApiResponse<OngProjectApplication>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication }> = await api.post(`/ong-projects/${projectId}/applications/${applicationId}/accept`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to accept application',
+          code: error.response?.data?.code || 'ACCEPT_APPLICATION_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Reject an application (for ONG)
+   */
+  static async rejectApplication(projectId: number, applicationId: number): Promise<ApiResponse<OngProjectApplication>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: OngProjectApplication }> = await api.post(`/ong-projects/${projectId}/applications/${applicationId}/reject`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to reject application',
+          code: error.response?.data?.code || 'REJECT_APPLICATION_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+}
+
 export default api;
 
 // Export all API classes for easy access
@@ -1631,4 +1887,5 @@ export {
   RecommendationAPI,
   ProgrammingLanguageAPI,
   TeacherAPI,
+  OngProjectAPI,
 };

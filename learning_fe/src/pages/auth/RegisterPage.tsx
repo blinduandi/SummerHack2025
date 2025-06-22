@@ -259,7 +259,7 @@ export const RegisterPage: React.FC = () => {
       data.email,
       data.password,
       data.name,
-      data.user_type, // Use selected user_type instead of hardcoded 'student'
+      data.user_type, // Will be sent as 'role' to backend
       data.bio?.trim() || undefined,
       data.avatar || undefined
     );

@@ -5,3 +5,4 @@ export * from './LandingPage';
 export * from './ProfilePage';
 export * from './CoursePage';
 export { default as TeacherDashboardPage } from './TeacherDashboardPageSimplified';
+export { default as OngProjectsPage } from './OngProjectsPage';

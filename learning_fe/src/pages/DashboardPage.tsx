@@ -21,11 +21,14 @@ import {
   Star as StarIcon,
   AccessTime as TimeIcon,
   Language as LanguageIcon,
+  Work as WorkIcon,
+  Assignment as AssignmentIcon,
+  People as PeopleIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../hooks';
 import { UserAvatar } from '../utils';
-import { CourseAPI, EnrollmentAPI } from '../services/api';
-import type { Course } from '../types';
+import { CourseAPI, EnrollmentAPI, OngProjectAPI } from '../services/api';
+import type { Course, OngProject } from '../types';
 import Aurora from '../blocks/Aurora/Aurora';
 import { useTheme } from '@mui/material/styles';
 
@@ -114,9 +117,10 @@ export const DashboardPage: React.FC = () => {
     theme.palette.secondary.main,
     theme.palette.primary.dark,
   ];
-  const navigate = useNavigate();
-  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
-  const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);  const [ongProjects, setOngProjects] = useState<OngProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [applyingToProject, setApplyingToProject] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -128,12 +132,21 @@ export const DashboardPage: React.FC = () => {
         const enrolledResponse = await CourseAPI.getMyEnrolledCourses({ per_page: 6 });
         if (enrolledResponse.success && enrolledResponse.data) {
           setEnrolledCourses(enrolledResponse.data.data);
-        }
-
-        // Fetch available courses as recommendations
+        }        // Fetch available courses as recommendations
         const availableResponse = await CourseAPI.getAvailableCourses({ per_page: 8 });
         if (availableResponse.success && availableResponse.data) {
           setRecommendedCourses(availableResponse.data.data);        }
+
+        // Fetch open ONG projects for students
+        if (user.role === 'student') {
+          const ongProjectsResponse = await OngProjectAPI.getAllProjects({ 
+            status: 'open', 
+            per_page: 6 
+          });
+          if (ongProjectsResponse.success && ongProjectsResponse.data) {
+            setOngProjects(ongProjectsResponse.data);
+          }
+        }
       } catch (err) {
         console.error('Dashboard data fetch error:', err);
       } finally {
@@ -141,7 +154,6 @@ export const DashboardPage: React.FC = () => {
       }
     };    fetchData();
   }, [user]);
-
   const   handleEnrollInCourse = async (courseId: number) => {
     try {
       const response = await EnrollmentAPI.enrollInCourse({ course_id: courseId });
@@ -159,6 +171,28 @@ export const DashboardPage: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to enroll in course:', err);
+    }
+  };
+  const handleApplyToProject = async (projectId: number) => {
+    setApplyingToProject(projectId);
+    try {
+      const response = await OngProjectAPI.applyToProject(projectId);
+      if (response.success) {
+        // Refresh the projects to show updated application count
+        const ongProjectsResponse = await OngProjectAPI.getAllProjects({ 
+          status: 'open', 
+          per_page: 6 
+        });
+        if (ongProjectsResponse.success && ongProjectsResponse.data) {
+          setOngProjects(ongProjectsResponse.data);
+        }
+        // Show success message or navigate to the project
+        console.log('Successfully applied to project!');
+      }
+    } catch (err) {
+      console.error('Failed to apply to project:', err);
+    } finally {
+      setApplyingToProject(null);
     }
   };
 
@@ -516,8 +550,138 @@ export const DashboardPage: React.FC = () => {
               );
             }))}
           </Box>
-        </CardContent>
-      </GlassCard>
+        </CardContent>      </GlassCard>
+
+      {/* ONG Projects Section - Only for Students */}
+      {user.role === 'student' && (
+        <GlassCard sx={{ mt: 4 }}>
+          <CardContent sx={{ p: 3 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+              <Typography variant="h5" fontWeight="bold">
+                🌟 Available ONG Projects
+              </Typography>
+              <Button 
+                variant="outlined" 
+                size="small"
+                onClick={() => navigate('/ong/projects')}
+              >
+                View All
+              </Button>
+            </Stack>
+            
+            <Box 
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                gap: 3
+              }}
+            >
+              {ongProjects.length === 0 ? (
+                <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
+                  <AssignmentIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                  <Typography variant="h6" color="text.secondary">
+                    No projects available
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Check back later for new project opportunities
+                  </Typography>
+                </Box>
+              ) : (
+                ongProjects.map((project) => (
+                  <CourseCard key={project.id}>
+                    <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                      <Stack spacing={2} sx={{ flexGrow: 1 }}>
+                        {/* Project Header */}
+                        <Box>
+                          <Typography variant="h6" fontWeight="bold" gutterBottom>
+                            {project.title}
+                          </Typography>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <Chip 
+                              label={project.status} 
+                              color="success"
+                              size="small"
+                            />                            <Stack direction="row" spacing={0.5} alignItems="center">
+                              <PeopleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                              <Typography variant="caption" color="text.secondary">
+                                {project.applications?.length || 0} applicants
+                              </Typography>
+                            </Stack>
+                          </Stack>
+                        </Box>
+
+                        {/* Project Description */}
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary" 
+                          sx={{ 
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            flexGrow: 1
+                          }}
+                        >
+                          {project.description}
+                        </Typography>
+
+                        {/* Skills */}
+                        {project.skills_needed && project.skills_needed.length > 0 && (
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap">
+                            {project.skills_needed.slice(0, 3).map((skill, index) => (
+                              <Chip
+                                key={index}
+                                label={skill}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontSize: '0.7rem', height: 20 }}
+                              />
+                            ))}
+                            {project.skills_needed.length > 3 && (
+                              <Chip
+                                label={`+${project.skills_needed.length - 3}`}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontSize: '0.7rem', height: 20 }}
+                              />
+                            )}
+                          </Stack>
+                        )}                        {/* Due Date */}
+                        {project.due_date && (
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <TimeIcon sx={{ fontSize: 16, color: 'warning.main' }} />
+                            <Typography variant="caption" color="warning.main">
+                              Due: {new Date(project.due_date).toLocaleDateString()}
+                            </Typography>
+                          </Stack>
+                        )}                        {/* Action Button */}
+                        <Button
+                          variant="contained"
+                          fullWidth
+                          startIcon={applyingToProject === project.id ? <CircularProgress size={16} color="inherit" /> : <AssignmentIcon />}
+                          onClick={() => handleApplyToProject(project.id)}
+                          disabled={applyingToProject === project.id}
+                          sx={{
+                            background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+                            '&:hover': {
+                              background: 'linear-gradient(135deg, #4f46e5 0%, #0891b2 100%)',
+                            },
+                            '&:disabled': {
+                              background: 'rgba(0, 0, 0, 0.12)',
+                            }
+                          }}
+                        >
+                          {applyingToProject === project.id ? 'Applying...' : 'Apply Now'}
+                        </Button>
+                      </Stack>
+                    </CardContent>
+                  </CourseCard>
+                ))
+              )}
+            </Box>
+          </CardContent>
+        </GlassCard>
+      )}
 
       {/* Quick Actions */}
       <GlassCard sx={{ mt: 4 }}>
@@ -532,6 +696,20 @@ export const DashboardPage: React.FC = () => {
               onClick={() => navigate('/profile')}
             >
               Edit Profile
+            </Button>
+            <Button 
+              variant="contained" 
+              startIcon={<WorkIcon />} 
+              size="large"
+              onClick={() => navigate('/ong/projects')}
+              sx={{
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                }
+              }}
+            >
+              ONG Projects
             </Button>
             <Button variant="outlined" startIcon={<LanguageIcon />} size="large">
               Language Settings

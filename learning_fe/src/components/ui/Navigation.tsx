@@ -31,6 +31,7 @@ import {
   Logout as LogoutIcon,
   Home as HomeIcon,
   School as SchoolIcon,
+  Work as WorkIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks';
 import { UserAvatar } from '../../utils';
@@ -217,6 +218,10 @@ export const Navigation: React.FC = () => {
           { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
           ...(getUserRole() === 'teacher' 
             ? [{ label: 'Teacher Dashboard', path: '/teacher/dashboard', icon: <SchoolIcon /> }]
+            : []
+          ),
+          ...(getUserRole() === 'ong' 
+            ? [{ label: 'ONG Projects', path: '/ong/projects', icon: <WorkIcon /> }]
             : []
           ),
           { label: 'Profile', path: '/profile', icon: <PersonIcon /> }
@@ -495,6 +500,14 @@ export const Navigation: React.FC = () => {
                   >
                     <SchoolIcon sx={{ mr: 1.5, color: '#10b981' }} />
                     Teacher Dashboard
+                  </MenuItem>
+                )}
+                {getUserRole() === 'ong' && (
+                  <MenuItem 
+                    onClick={() => { navigate('/ong/projects'); handleUserMenuClose(); }}
+                  >
+                    <WorkIcon sx={{ mr: 1.5, color: '#f59e0b' }} />
+                    ONG Projects
                   </MenuItem>
                 )}
                 <MenuItem 

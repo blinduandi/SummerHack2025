@@ -297,3 +297,47 @@ export interface UpdateProgramRequest {
   learning_objectives?: string[];
   is_published?: boolean;
 }
+
+// ONG Project types
+export interface OngProject {
+  id: number;
+  ong_id: number;
+  title: string;
+  description: string;
+  requirements?: string;
+  skills_needed?: string[];
+  due_date?: string;
+  status: 'open' | 'closed';
+  winner_user_id?: number;
+  created_at: string;
+  updated_at: string;
+  applications?: OngProjectApplication[];
+  ong?: User;
+  winner?: User;
+}
+
+export interface OngProjectApplication {
+  id: number;
+  project_id: number;
+  user_id: number;
+  status: 'applied' | 'completed' | 'accepted' | 'rejected';
+  github_repo?: string;
+  images?: string[];
+  created_at: string;
+  updated_at: string;
+  user?: User;
+  project?: OngProject;
+}
+
+export interface CreateOngProjectRequest {
+  title: string;
+  description: string;
+  requirements?: string;
+  skills_needed?: string[];
+  due_date?: string;
+}
+
+export interface SubmitOngProjectRequest {
+  github_repo: string;
+  images?: string[];
+}
