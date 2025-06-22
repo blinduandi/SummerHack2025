@@ -1,5 +1,69 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
+# Learning Platform - Backend
+
+## For Mentors: Project Description
+
+This project is the backend for a learning platform designed to connect students with courses and NGOs with volunteers. The frontend is a separate React application which you can find in the `learning_fe` folder. The platform has the following key features:
+
+- **User Roles**: Students, NGOs, and Admins.
+- **Course Management**: Students can enroll in courses, view course materials, and track their progress.
+- **ONG Projects**: NGOs can create and manage projects, and students can apply to volunteer for these projects.
+- **API**: A comprehensive RESTful API for all platform functionalities.
+
+This README provides instructions for setting up and running the backend. For more specific documentation, please refer to the following files:
+
+- [Frontend Documentation](../learning_fe/README.md)
+- [GITHUB_INTEGRATION_README.md](GITHUB_INTEGRATION_README.md)
+- [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
+- [DATABASE_STRUCTURE.md](database_structure.md)
+
+## Setup Instructions
+
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-repo/learning_be.git
+    cd learning_be
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    composer install
+    ```
+
+3.  **Create the environment file:**
+    ```bash
+    cp .env.example .env
+    ```
+
+4.  **Generate the application key:**
+    ```bash
+    php artisan key:generate
+    ```
+
+5.  **Configure your `.env` file** with your database credentials and other settings.
+
+6.  **Run database migrations:**
+    ```bash
+    php artisan migrate
+    ```
+
+7.  **Seed the database (optional):**
+    ```bash
+    php artisan db:seed
+    ```
+
+8.  **Start the development server:**
+    ```bash
+    php artisan serve
+    ```
+
+## API Testing with Postman
+
+A Postman collection is included to facilitate API testing. You can find it at `postman/Laravel_Learning_Platform_CodeRabbit.postman_collection.json`.
+
+To use it, import the collection into Postman and set up the environment using `postman/Laravel_Learning_Platform_Local.postman_environment.json`.
+
 <p align="center">
 <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
