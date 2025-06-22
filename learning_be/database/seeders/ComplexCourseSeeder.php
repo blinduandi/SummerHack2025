@@ -6,10 +6,18 @@ use Illuminate\Database\Seeder;
 use App\Models\Course;
 use App\Models\CourseStep;
 use App\Models\User;
+use App\Services\CourseContentService;
 use Faker\Factory as Faker;
 
 class ComplexCourseSeeder extends Seeder
 {
+    private $courseContentService;
+
+    public function __construct(CourseContentService $courseContentService)
+    {
+        $this->courseContentService = $courseContentService;
+    }
+
     public function run(): void
     {
         $faker = Faker::create();
@@ -36,8 +44,8 @@ class ComplexCourseSeeder extends Seeder
             ['title' => 'Blockchain Development with Solidity', 'category' => 'Blockchain', 'difficulty' => 'Advanced', 'poster' => 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop', 'thumbnail' => 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=400&h=300&fit=crop'],
         ];
 
-        // Generate 50 courses
-        for ($i = 0; $i < 50; $i++) {
+        // Generate 5 courses for testing (change to 50 for full seed)
+        for ($i = 0; $i < 5; $i++) {
             $topic = $courseTopics[$i % count($courseTopics)];
             $courseTitle = $topic['title'];
             if ($i >= count($courseTopics)) {
@@ -65,24 +73,236 @@ class ComplexCourseSeeder extends Seeder
         $stepTypes = ['setup', 'theory', 'code', 'testing', 'deployment', 'review'];
         $stepCount = rand(20, 25); // Ensure at least 20 steps
 
-        for ($i = 1; $i <= $stepCount; $i++) {
-            $stepType = $stepTypes[array_rand($stepTypes)];
+        // Create a logical progression of step types
+        $stepProgression = $this->createStepProgression($stepCount, $stepTypes);
+
+        foreach ($stepProgression as $i => $stepType) {
+            $stepNumber = $i + 1;
+            
+            // Generate enhanced content using OpenAI
+            $aiContent = $this->courseContentService->generateCourseSteps(
+                $course->title,
+                $course->category,
+                $course->difficulty,
+                $stepNumber,
+                $stepType
+            );
 
             CourseStep::create([
                 'course_id' => $course->id,
-                'title' => "Step $i: " . $this->getStepTitle($stepType, $i),
-                'description' => $faker->paragraph(2),
-                'content' => $this->getStepContent($stepType, $course->title, $i),
-                'step_order' => $i,
+                'title' => $aiContent['title'] ?? "Step $stepNumber: " . $this->getStepTitle($stepType, $stepNumber),
+                'description' => $aiContent['description'] ?? $faker->paragraph(2),
+                'content' => $aiContent['content'] ?? $this->getStepContent($stepType, $course->title, $stepNumber),
+                'step_order' => $stepNumber,
                 'step_type' => $stepType,
                 'is_required' => $faker->boolean(80),
                 'metadata' => json_encode([
-                    'difficulty' => $faker->randomElement(['easy', 'medium', 'hard']),
-                    'estimated_time' => rand(15, 120) . ' minutes'
+                    'difficulty' => $aiContent['difficulty'] ?? $faker->randomElement(['easy', 'medium', 'hard']),
+                    'estimated_time' => (is_numeric($aiContent['estimated_time'] ?? 0) ? $aiContent['estimated_time'] : rand(15, 120)) . ' minutes'
                 ]),
+                'youtube_recommendations' => $aiContent['youtube_recommendations'] ?? $this->getDefaultYouTubeRecommendations($stepType),
+                'prerequisites' => $aiContent['prerequisites'] ?? $this->getDefaultPrerequisites($stepType, $stepNumber),
+                'learning_objectives' => $aiContent['learning_objectives'] ?? $this->getDefaultLearningObjectives($stepType),
+                'estimated_time' => is_numeric($aiContent['estimated_time'] ?? 0) ? (int)$aiContent['estimated_time'] : rand(30, 90),
+                'difficulty' => $aiContent['difficulty'] ?? 'medium',
                 'is_active' => true,
             ]);
+
+            // Add a small delay to avoid hitting OpenAI rate limits
+            if ($stepNumber % 5 === 0) {
+                sleep(1);
+            }
         }
+    }
+
+    /**
+     * Create a logical progression of step types for a course
+     */
+    private function createStepProgression(int $stepCount, array $stepTypes): array
+    {
+        $progression = [];
+        
+        // Start with setup steps
+        $progression[] = 'setup';
+        $progression[] = 'setup';
+        
+        // Add theory and code steps alternately with some randomness
+        for ($i = 2; $i < $stepCount - 4; $i++) {
+            if ($i % 4 === 0) {
+                $progression[] = 'theory';
+            } elseif ($i % 4 === 1) {
+                $progression[] = 'code';
+            } elseif ($i % 4 === 2) {
+                $progression[] = 'code';
+            } else {
+                $progression[] = rand(0, 1) ? 'testing' : 'review';
+            }
+        }
+        
+        // End with testing, deployment, and review
+        $progression[] = 'testing';
+        $progression[] = 'deployment';
+        $progression[] = 'review';
+        $progression[] = 'review';
+        
+        return $progression;
+    }
+
+    /**
+     * Get default YouTube recommendations for each step type
+     */
+    private function getDefaultYouTubeRecommendations(string $stepType): array
+    {
+        $recommendations = [
+            'setup' => [
+                [
+                    'title' => 'Development Environment Setup Tutorial',
+                    'channel' => 'Programming with Mosh',
+                    'search_query' => 'development environment setup ' . $stepType,
+                    'description' => 'Learn how to set up your development environment properly'
+                ],
+                [
+                    'title' => 'Essential Tools for Developers',
+                    'channel' => 'Traversy Media',
+                    'search_query' => 'developer tools setup guide',
+                    'description' => 'Overview of essential development tools and configuration'
+                ]
+            ],
+            'theory' => [
+                [
+                    'title' => 'Programming Concepts Explained',
+                    'channel' => 'freeCodeCamp',
+                    'search_query' => 'programming theory fundamentals',
+                    'description' => 'Deep dive into core programming concepts and principles'
+                ],
+                [
+                    'title' => 'Software Design Principles',
+                    'channel' => 'Derek Banas',
+                    'search_query' => 'software design patterns tutorial',
+                    'description' => 'Understanding software architecture and design patterns'
+                ]
+            ],
+            'code' => [
+                [
+                    'title' => 'Hands-on Coding Session',
+                    'channel' => 'The Net Ninja',
+                    'search_query' => 'coding tutorial practical examples',
+                    'description' => 'Follow along coding session with real examples'
+                ],
+                [
+                    'title' => 'Best Coding Practices',
+                    'channel' => 'Academind',
+                    'search_query' => 'clean code practices tutorial',
+                    'description' => 'Learn how to write clean, maintainable code'
+                ]
+            ],
+            'testing' => [
+                [
+                    'title' => 'Testing Fundamentals',
+                    'channel' => 'Tech With Tim',
+                    'search_query' => 'software testing tutorial',
+                    'description' => 'Learn testing strategies and best practices'
+                ],
+                [
+                    'title' => 'Unit Testing Guide',
+                    'channel' => 'Corey Schafer',
+                    'search_query' => 'unit testing tutorial',
+                    'description' => 'Complete guide to writing effective unit tests'
+                ]
+            ],
+            'deployment' => [
+                [
+                    'title' => 'Deployment Strategies',
+                    'channel' => 'TechWorld with Nana',
+                    'search_query' => 'deployment tutorial production',
+                    'description' => 'Learn how to deploy applications to production'
+                ],
+                [
+                    'title' => 'Cloud Deployment Guide',
+                    'channel' => 'AWS',
+                    'search_query' => 'cloud deployment best practices',
+                    'description' => 'Deploy applications to cloud platforms effectively'
+                ]
+            ],
+            'review' => [
+                [
+                    'title' => 'Code Review Best Practices',
+                    'channel' => 'Coding Tech',
+                    'search_query' => 'code review techniques',
+                    'description' => 'Learn effective code review and optimization techniques'
+                ],
+                [
+                    'title' => 'Performance Optimization',
+                    'channel' => 'Web Dev Simplified',
+                    'search_query' => 'performance optimization tutorial',
+                    'description' => 'Optimize your code for better performance'
+                ]
+            ]
+        ];
+
+        return $recommendations[$stepType] ?? $recommendations['theory'];
+    }
+
+    /**
+     * Get default prerequisites for each step type
+     */
+    private function getDefaultPrerequisites(string $stepType, int $stepNumber): string
+    {
+        if ($stepNumber <= 2) {
+            return 'Basic understanding of programming concepts';
+        }
+
+        $prerequisites = [
+            'setup' => 'Access to a computer with internet connection',
+            'theory' => 'Complete previous steps and basic programming knowledge',
+            'code' => 'Understanding of theoretical concepts from previous steps',
+            'testing' => 'Completed implementation from coding steps',
+            'deployment' => 'Tested and working application from previous steps',
+            'review' => 'Completed implementation and testing phases'
+        ];
+
+        return $prerequisites[$stepType] ?? 'Complete all previous steps in order';
+    }
+
+    /**
+     * Get default learning objectives for each step type
+     */
+    private function getDefaultLearningObjectives(string $stepType): array
+    {
+        $objectives = [
+            'setup' => [
+                'Configure development environment',
+                'Install required tools and dependencies',
+                'Verify setup functionality'
+            ],
+            'theory' => [
+                'Understand core concepts and principles',
+                'Learn best practices and patterns',
+                'Grasp theoretical foundations'
+            ],
+            'code' => [
+                'Implement practical solutions',
+                'Apply learned concepts in code',
+                'Build functional components'
+            ],
+            'testing' => [
+                'Write comprehensive tests',
+                'Validate functionality and edge cases',
+                'Ensure code quality and reliability'
+            ],
+            'deployment' => [
+                'Deploy to production environment',
+                'Configure production settings',
+                'Monitor application performance'
+            ],
+            'review' => [
+                'Analyze code quality and performance',
+                'Identify optimization opportunities',
+                'Document lessons learned'
+            ]
+        ];
+
+        return $objectives[$stepType] ?? $objectives['theory'];
     }
 
     private function getStepTitle($type, $stepNumber)
