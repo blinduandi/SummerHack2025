@@ -24,7 +24,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   password_confirmation: string;
-  user_type: 'student' | 'teacher' | 'ong';
+  role: 'student' | 'teacher' | 'ong';
   bio?: string;
   avatar?: string; // URL to uploaded avatar
 }

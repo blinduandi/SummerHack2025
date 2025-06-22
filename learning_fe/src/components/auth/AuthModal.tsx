@@ -44,7 +44,7 @@ interface RegisterFormData {
   email: string;
   password: string;
   password_confirmation: string;
-  role: 'student' | 'teacher';
+  role: 'student' | 'teacher' | 'ong';
 }
 
 const loginSchema = yup.object().shape({
@@ -80,7 +80,7 @@ const registerSchema = yup.object().shape({
     .required('Please confirm your password'),
   role: yup
     .string()
-    .oneOf(['student', 'teacher'])
+    .oneOf(['student', 'teacher', 'ong'])
     .required('Please select your role'),
 });
 
@@ -211,7 +211,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onClose, initialTab 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [userType, setUserType] = useState<'student' | 'teacher'>('student');
+  const [userType, setUserType] = useState<'student' | 'teacher' | 'ong'>('student');
   const { login, register, isLoading, error, clearError } = useAuth();
   const theme = useTheme();
 
@@ -544,7 +544,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ open, onClose, initialTab 
                           <Typography variant="caption" color="text.secondary">
                             Teach & inspire
                           </Typography>
-                        </UserTypeButton>                      </Stack>
+                        </UserTypeButton>
+                        <UserTypeButton
+                          selected={userType === 'ong'}
+                          onClick={() => {
+                            setUserType('ong');
+                            registerForm.setValue('role', 'ong');
+                          }}
+                          sx={{ flex: 1 }}
+                        >
+                          <Typography color="white" fontWeight={600}>
+                            🏫 ONG
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            Help & support
+                          </Typography>
+                        </UserTypeButton>                      
+                    </Stack>
                     </Box>                    <StyledLoadingButton
                       type="submit"                      variant="contained"
                       size="large"

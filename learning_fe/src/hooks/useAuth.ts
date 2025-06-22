@@ -168,20 +168,18 @@ export const useAuth = () => {
     email: string,
     password: string,
     name: string,
-    user_type: 'student' | 'teacher' | 'ong' = 'student',
+    role: 'student' | 'teacher' | 'ong' = 'student',
     bio?: string,
     avatar?: string
   ): Promise<boolean> => {
-    console.log('[useAuth] Starting registration for:', email, name);
+    console.log('[useAuth] Starting registration for:', email, name, 'role:', role);
     setLoading(true);
-    clearError();
-
-    try {      const response = await AuthAPI.register({
+    clearError();    try {      const response = await AuthAPI.register({
         name,
         email,
         password,
         password_confirmation: password,
-        user_type,
+        role, // Now correctly passing 'role' to match the API interface
         bio: bio || undefined,
         avatar: avatar || undefined,
       });

@@ -232,7 +232,7 @@ class AuthAPI {
         email: credentials.email,
         password: credentials.password,
         password_confirmation: credentials.password_confirmation,
-        role: credentials.user_type, // Backend controller expects 'role' field
+        role: credentials.role,
       };
       
       // Only include bio if it's provided and not empty
