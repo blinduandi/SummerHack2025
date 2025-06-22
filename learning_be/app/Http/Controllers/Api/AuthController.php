@@ -126,7 +126,7 @@ class AuthController extends Controller
 
     /**
      * Process base64 avatar data
-     * 
+     *
      * @param string $base64Data
      * @return string
      */
@@ -143,7 +143,7 @@ class AuthController extends Controller
 
         // Extract the image type
         $imageType = $matches[1];
-        
+
         // Validate image type
         $allowedTypes = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
         if (!in_array(strtolower($imageType), $allowedTypes)) {

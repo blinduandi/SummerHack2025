@@ -132,7 +132,7 @@ class BasicCoursesSeeder extends Seeder
     private function createBasicSteps(Course $course, array $courseData)
     {
         $steps = $this->getStepsForCourse($courseData['title']);
-        
+
         foreach ($steps as $index => $stepData) {
             CourseStep::create([
                 'course_id' => $course->id,

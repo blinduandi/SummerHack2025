@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "learning-platform-api",
 		"name": "Learning Platform API",
-		"description": "Complete API collection for the Learning Platform backend with authentication, programs, courses, enrollments, progress tracking, chat, and recommendations.",
+		"description": "Complete API collection for the Learning Platform backend with authentication, programs, courses, enrollments, enhanced progress tracking, chat, and recommendations. Features: Base64 avatar support, detailed step progress tracking with 4 status types (hidden/in_progress/solved/completed), course images (poster/thumbnail), bulk progress updates, and comprehensive error handling.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "learning-platform"
 	},
@@ -22,7 +22,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"John Student\",\n    \"email\": \"student@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"user_type\": \"student\",\n    \"bio\": \"Aspiring developer\"\n}"
+							"raw": "{\n    \"name\": \"John Student\",\n    \"email\": \"student@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"user_type\": \"student\",\n    \"bio\": \"Aspiring developer\",\n    \"avatar\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCABkAGQDAREAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//2Q==\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
@@ -49,7 +49,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"Jane Teacher\",\n    \"email\": \"teacher@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"user_type\": \"teacher\",\n    \"bio\": \"Experienced programming instructor\"\n}"
+							"raw": "{\n    \"name\": \"Jane Teacher\",\n    \"email\": \"teacher@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"user_type\": \"teacher\",\n    \"bio\": \"Experienced programming instructor\",\n    \"avatar\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/register",
@@ -185,7 +185,38 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"John Updated Student\",\n    \"bio\": \"Updated bio - passionate about learning\",\n    \"skills\": [\"JavaScript\", \"HTML\", \"CSS\"]\n}"
+							"raw": "{\n    \"name\": \"John Updated Student\",\n    \"bio\": \"Updated bio - passionate about learning\",\n    \"skills\": [\"JavaScript\", \"HTML\", \"CSS\"],\n    \"avatar\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCABkAGQDAREAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigD//2Q==\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile with Avatar",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Updated Student\",\n    \"bio\": \"Updated bio with new avatar\",\n    \"avatar\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/auth/profile",
@@ -440,7 +471,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"title\": \"Introduction to JavaScript\",\n    \"description\": \"Learn the fundamentals of JavaScript programming\",\n    \"difficulty_level\": \"beginner\",\n    \"estimated_duration_hours\": 40,\n    \"programming_language_id\": {{programming_language_id}},\n    \"program_id\": {{program_id}},\n    \"prerequisites\": [\"Basic computer literacy\"],\n    \"learning_objectives\": [\"Understand variables and data types\", \"Write functions\", \"Work with the DOM\"],\n    \"tags\": [\"javascript\", \"programming\", \"web-development\"],\n    \"is_published\": true\n}"
+							"raw": "{\n    \"title\": \"Introduction to JavaScript\",\n    \"description\": \"Learn the fundamentals of JavaScript programming\",\n    \"difficulty_level\": \"beginner\",\n    \"estimated_duration_hours\": 40,\n    \"programming_language_id\": {{programming_language_id}},\n    \"program_id\": {{program_id}},\n    \"prerequisites\": [\"Basic computer literacy\"],\n    \"learning_objectives\": [\"Understand variables and data types\", \"Write functions\", \"Work with the DOM\"],\n    \"tags\": [\"javascript\", \"programming\", \"web-development\"],\n    \"poster\": \"https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&h=600&fit=crop\",\n    \"thumbnail\": \"https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=300&h=200&fit=crop\",\n    \"is_published\": true\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/courses",
@@ -983,6 +1014,88 @@
 					"response": []
 				},
 				{
+					"name": "Get Course Steps Status (Compact)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/course/{{course_id}}/steps/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"course",
+								"{{course_id}}",
+								"steps",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All User Step Progress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/progress/user/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"user",
+								"steps"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Update Step Progress",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"updates\": [\n        {\n            \"step_id\": {{step_id}},\n            \"status\": \"solved\",\n            \"score\": 95,\n            \"progress_data\": {\n                \"answers\": [\"correct\", \"correct\", \"incorrect\"]\n            }\n        },\n        {\n            \"step_id\": {{exercise_step_id}},\n            \"status\": \"in_progress\",\n            \"notes\": \"Working on this step\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/steps/bulk-update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"steps",
+								"bulk-update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Get Step Progress",
 					"request": {
 						"method": "GET",
@@ -1065,6 +1178,38 @@
 								"progress",
 								"step",
 								"{{exercise_step_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Step Progress - In Progress",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{student_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"in_progress\",\n    \"progress_data\": {\n        \"start_time\": \"2025-06-22T10:30:00Z\",\n        \"current_section\": \"variables\"\n    },\n    \"notes\": \"Started working on this step\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/progress/step/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"progress",
+								"step",
+								"{{step_id}}"
 							]
 						}
 					},

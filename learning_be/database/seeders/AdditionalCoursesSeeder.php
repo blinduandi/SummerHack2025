@@ -178,7 +178,7 @@ class AdditionalCoursesSeeder extends Seeder
     {
         $stepCount = $this->getStepCount($courseData['difficulty']);
         $steps = $this->generateStepsForCourse($course->title, $courseData['category'], $stepCount);
-        
+
         foreach ($steps as $index => $stepData) {
             CourseStep::create([
                 'course_id' => $course->id,
@@ -215,7 +215,7 @@ class AdditionalCoursesSeeder extends Seeder
     {
         $steps = [];
         $stepTypes = ['setup', 'theory', 'code', 'testing', 'deployment', 'review'];
-        
+
         // Always start with introduction and setup
         $steps[] = [
             'title' => 'Course Introduction and Overview',
@@ -292,7 +292,7 @@ class AdditionalCoursesSeeder extends Seeder
     private function getStepContent($type, $title, $category)
     {
         $content = "In this step, you will focus on $type aspects of $title. ";
-        
+
         switch ($type) {
             case 'setup':
                 $content .= "We'll configure your development environment and install all necessary tools.";

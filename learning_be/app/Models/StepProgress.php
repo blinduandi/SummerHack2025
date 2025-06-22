@@ -59,6 +59,11 @@ class StepProgress extends Model
         return $query->where('status', 'solved');
     }
 
+    public function scopeCompleted($query)
+    {
+        return $query->where('status', 'completed');
+    }
+
     public function scopeByStatus($query, $status)
     {
         return $query->where('status', $status);
@@ -80,6 +85,11 @@ class StepProgress extends Model
         return $this->status === 'solved';
     }
 
+    public function isCompleted(): bool
+    {
+        return $this->status === 'completed';
+    }
+
     public function markAsStarted(): void
     {
         if ($this->status === 'hidden') {
@@ -95,6 +105,16 @@ class StepProgress extends Model
     {
         $this->update([
             'status' => 'solved',
+            'completed_at' => now(),
+            'last_accessed_at' => now(),
+            'score' => $score,
+        ]);
+    }
+
+    public function markAsCompleted(float $score = null): void
+    {
+        $this->update([
+            'status' => 'completed',
             'completed_at' => now(),
             'last_accessed_at' => now(),
             'score' => $score,
