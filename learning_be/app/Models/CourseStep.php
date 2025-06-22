@@ -21,13 +21,21 @@ class CourseStep extends Model
         'is_required',
         'metadata',
         'is_active',
+        'youtube_recommendations',
+        'prerequisites',
+        'learning_objectives',
+        'estimated_time',
+        'difficulty',
     ];
 
     protected $casts = [
         'is_required' => 'boolean',
         'is_active' => 'boolean',
         'metadata' => 'array',
+        'youtube_recommendations' => 'array',
+        'learning_objectives' => 'array',
         'step_order' => 'integer',
+        'estimated_time' => 'integer',
     ];
 
     // Relationships
