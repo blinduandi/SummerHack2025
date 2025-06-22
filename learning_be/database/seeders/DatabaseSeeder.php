@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ComplexCourseSeeder::class,
             BasicCoursesSeeder::class,
             AdditionalCoursesSeeder::class,
+            OngProjectSeeder::class,
         ]);
 
         // User::factory(10)->create();

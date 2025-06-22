@@ -22,7 +22,7 @@ class CourseContentService
     {
         try {
             $prompt = $this->buildCourseStepPrompt($courseTitle, $category, $difficulty, $stepNumber, $stepType);
-            
+
             $response = $this->client->chat()->create([
                 'model' => config('openai.model'),
                 'messages' => [
@@ -84,11 +84,11 @@ Make the content specific to the course topic and ensure it's practical and acti
         // Try to extract JSON from the response
         $jsonStart = strpos($content, '{');
         $jsonEnd = strrpos($content, '}');
-        
+
         if ($jsonStart !== false && $jsonEnd !== false) {
             $jsonContent = substr($content, $jsonStart, $jsonEnd - $jsonStart + 1);
             $decoded = json_decode($jsonContent, true);
-            
+
             if ($decoded) {
                 return $decoded;
             }
@@ -169,7 +169,7 @@ Make the content specific to the course topic and ensure it's practical and acti
         ];
 
         $content = $fallbackContent[$stepType] ?? $fallbackContent['theory'];
-        
+
         return [
             'title' => $content['title'],
             'description' => $content['description'],

@@ -1,179 +1,91 @@
-# Professional TypeScript React Authentication App
+# Learning Platform - Frontend
 
-A modern, professional React application built with TypeScript, Material-UI, and comprehensive authentication system.
+This is the frontend for the Learning Platform, a modern React application built with TypeScript, Material-UI, and a comprehensive authentication system. It provides a user-friendly interface for students to find and enroll in courses, and for NGOs to manage their projects and volunteers.
 
 ## 🚀 Features
 
 - **Modern Stack**: React 18, TypeScript, Vite
-- **UI Framework**: Material-UI (MUI) with custom theme
-- **Landing Page**: Beautiful, responsive landing page with hero section
-- **Navigation**: Professional navigation bar with mobile support
-- **Authentication**: JWT-based authentication with token management
-- **State Management**: Zustand for efficient state management
-- **Form Handling**: React Hook Form with Yup validation
-- **Routing**: React Router with protected routes
-- **Professional Structure**: Clean architecture with separation of concerns
+- **UI Framework**: Material-UI (MUI) with a custom theme
+- **User Roles**: Separate dashboards and functionalities for Students and NGOs.
+- **Course Enrollment**: Students can browse and enroll in available courses.
+- **ONG Project Management**: NGOs can create, update, and delete their projects.
+- **Authentication**: JWT-based authentication with secure token management.
+- **State Management**: Zustand for efficient and lightweight state management.
+- **Form Handling**: React Hook Form with Yup for robust validation.
+- **Routing**: React Router for seamless navigation and protected routes.
+- **Professional Structure**: Clean and scalable architecture with a clear separation of concerns.
 
 ## 📁 Project Structure
 
 ```
 src/
+├── api/                 # API service definitions
 ├── components/          # Reusable UI components
-│   ├── ui/             # Basic UI components
-│   │   ├── LoadingButton.tsx
-│   │   ├── AuthCard.tsx
-│   │   ├── Navigation.tsx
-│   │   └── ProtectedRoute.tsx
-│   ├── forms/          # Form components
-│   │   └── FormInput.tsx
-│   └── Layout.tsx      # Main layout component
-├── pages/              # Page components
-│   ├── auth/          # Authentication pages
-│   │   ├── LoginPage.tsx
-│   │   └── RegisterPage.tsx
-│   ├── DashboardPage.tsx
-│   └── LandingPage.tsx
-├── store/              # Zustand state management
-│   └── authStore.ts
-├── services/           # API services
-│   └── api.ts
-├── types/              # TypeScript type definitions
-│   └── auth.ts
-├── hooks/              # Custom React hooks
-│   └── useAuth.ts
-├── theme/              # MUI theme configuration
-│   └── index.ts
-├── utils/              # Utility functions
-│   └── index.ts
-└── App.tsx            # Main app component
+│   ├── ong/             # Components specific to ONG features
+│   ├── student/         # Components specific to Student features
+│   └── ui/              # Generic UI components
+├── hooks/               # Custom React hooks
+├── pages/               # Page components for different routes
+├── services/            # API services
+├── store/               # Zustand state management stores
+├── theme/               # MUI theme configuration
+├── types/               # TypeScript type definitions
+└── App.tsx              # Main application component
 ```
 
 ## 🛠️ Technologies Used
 
-- **React 18** - Modern React with hooks
-- **TypeScript** - Type-safe development
-- **Material-UI (MUI)** - Professional UI components
-- **Vite** - Fast build tool and dev server
-- **React Router** - Client-side routing
-- **React Hook Form** - Efficient form handling
-- **Yup** - Schema validation
-- **Zustand** - Lightweight state management
-- **Axios** - HTTP client for API calls
+- **React 18** - For building the user interface.
+- **TypeScript** - For type-safe development.
+- **Material-UI (MUI)** - For a professional and consistent UI.
+- **Vite** - As a fast build tool and development server.
+- **React Router** - For client-side routing.
+- **React Hook Form & Yup** - For efficient and validated forms.
+- **Zustand** - For lightweight global state management.
+- **Axios** - As the HTTP client for API communication.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js 16+ 
+- Node.js 16+
 - npm or yarn
 
 ### Installation
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+1.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-2. Copy environment variables:
-   ```bash
-   cp .env.example .env
-   ```
+2.  **Set up environment variables:**
 
-3. Update the `.env` file with your API configuration:
-   ```env
-   VITE_API_URL=http://localhost:3001/api
-   VITE_APP_NAME=Professional Auth App
-   ```
+    Create a `.env` file in the root of the `learning_fe` directory and add the following, pointing to your running backend instance:
+
+    ```env
+    VITE_API_URL=http://localhost:8000/api
+    VITE_APP_NAME=Learning Platform
+    ```
 
 ### Development
 
-Start the development server:
-```bash
-npm run dev
-```
+1.  **Start the development server:**
+    ```bash
+    npm run dev
+    ```
 
-The application will be available at `http://localhost:5173`
+2.  The application will be available at `http://localhost:5173`.
 
 ### Building for Production
 
-Build the application:
+To create a production build, run:
+
 ```bash
 npm run build
 ```
 
-Preview the production build:
-```bash
-npm run preview
-```
+This will generate a `dist` folder with the optimized and minified assets, ready for deployment.
 
-## 🔐 Authentication System
+## Backend Documentation
 
-### Features
-
-- **User Registration** - Create new accounts with validation
-- **User Login** - Secure JWT-based authentication
-- **Token Management** - Automatic token refresh and storage
-- **Protected Routes** - Route-level authentication guards
-- **Persistent Sessions** - Stay logged in across browser sessions
-
-### API Integration
-
-The app expects a REST API with the following endpoints:
-
-- `POST /auth/login` - User login
-- `POST /auth/register` - User registration
-- `POST /auth/refresh` - Token refresh
-- `POST /auth/logout` - User logout
-- `GET /auth/profile` - Get user profile
-
-### User Roles
-
-The system supports multiple user roles:
-- `admin` - Full system access
-- `user` - Standard user access
-- `moderator` - Moderation privileges
-
-## 🎨 UI/UX Features
-
-- **Responsive Design** - Works on all devices
-- **Professional Styling** - Modern, clean interface
-- **Loading States** - Proper loading indicators
-- **Error Handling** - User-friendly error messages
-- **Form Validation** - Real-time validation with helpful messages
-
-## 📱 Pages
-
-### Landing Page
-- **Hero Section** - Eye-catching introduction with call-to-action
-- **Features Section** - Highlight key features and benefits
-- **Statistics** - Display impressive numbers and social proof
-- **Responsive Design** - Beautiful layout on all devices
-
-### Authentication Pages
-- **Login Page** - Clean login form with validation
-- **Register Page** - Comprehensive registration form
-
-### Navigation
-- **Responsive Navigation** - Works on desktop and mobile
-- **User Menu** - Profile dropdown with user actions
-- **Route Highlighting** - Active page indication
-
-### Dashboard
-- **User Dashboard** - Personalized user dashboard
-- **Profile Information** - Display user details
-- **Quick Actions** - Common user actions
-
-## 🚀 Development
-
-The development server is running at `http://localhost:5173`
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-
-## 📄 License
-
-This project is licensed under the MIT License.
+For instructions on how to set up the backend server, please refer to the `../learning_be/README.md` file.
