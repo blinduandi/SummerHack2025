@@ -65,11 +65,11 @@ const GlassAppBar = styled(AppBar)<{ scrolled?: boolean }>(({ scrolled }) => ({
 const GlassMenu = styled(Menu)(() => ({
   '& .MuiPaper-root': {
    backgroundColor: 'transparent', // Fully transparent
-    backdropFilter: 'none',
-    WebkitBackdropFilter: 'none',
-    // border: `1px solid ${alpha('#ffffff', 0.12)}`,
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: `1px solid ${alpha('#ffffff', 0.12)}`,
     borderRadius: 16,
-    // boxShadow: `0 20px 40px ${alpha('#000000', 0.6)}, 0 8px 16px ${alpha('#000000', 0.4)}`,
+    boxShadow: `0 20px 40px ${alpha('#000000', 0.6)}, 0 8px 16px ${alpha('#000000', 0.4)}`,
     minWidth: 220,
     mt: 1,
     '&::before': {
@@ -242,7 +242,7 @@ export const Navigation: React.FC = () => {
             sx={{
               color: '#ffffff',
               textDecoration: 'none',
-              backgroundColor: location.pathname === item.path ? 'white' : 'transparent',
+              backgroundColor: location.pathname === item.path ? alpha('#6366f1+', 0.15) : 'transparent',
               '&:hover': {
                 backgroundColor: alpha('#ffffff', 0.08),
               },
@@ -384,8 +384,8 @@ export const Navigation: React.FC = () => {
                     position: 'relative',
                     overflow: 'hidden',
                     backgroundColor: location.pathname === item.path ? alpha('#6366f1', 0.15) : alpha('#ffffff', 0.03),
-                    border: `1px solid ${location.pathname === item.path ? alpha('#818cf8', 0.3) : alpha('#ffffff', 0.08)}`,
-                    color: location.pathname === item.path ? '#818cf8' : 'inherit',
+                    border: `1px solid ${location.pathname === item.path ? 'white' : alpha('#ffffff', 0.08)}`,
+                    color: location.pathname === item.path ? 'white' : 'inherit',
                     fontSize: '0.875rem',
                     px: 2,
                     py: 1,
@@ -404,7 +404,7 @@ export const Navigation: React.FC = () => {
                     },
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      backgroundColor: alpha('#ffffff', 0.08),
+                      backgroundColor: alpha('#ffffff', 0.9),
                       boxShadow: `0 8px 25px ${alpha('#6366f1', 0.2)}`,
                       '&::before': {
                         opacity: 1,
@@ -525,7 +525,7 @@ export const Navigation: React.FC = () => {
           {error}
         </Alert>
       </Snackbar>
-    </>
+    </> 
   );
 };
 

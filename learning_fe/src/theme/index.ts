@@ -142,7 +142,7 @@ export const createGlassTheme = (mode: PaletteMode) => {
             padding: '10px 24px',
             boxShadow: 'none',
             '&:hover': {
-              boxShadow: '0 8px 24px rgba(99, 102, 241, 0.3)',
+              boxShadow: '0 8px 24px rgba(240, 240, 240, 0.3)',
               transform: 'translateY(-2px)',
             },
           },

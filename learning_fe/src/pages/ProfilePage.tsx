@@ -36,6 +36,7 @@ import { useAuth } from '../hooks';
 import { useAuthStore } from '../store';
 import { UserAvatar } from '../utils';
 import { AuthAPI } from '../services/api';
+import Aurora from '../blocks/Aurora/Aurora';
 
 // Glass morphism styled components
 const GlassCard = styled(Card)(({ theme }) => ({
@@ -240,26 +241,32 @@ export const ProfilePage: React.FC = () => {
   return (
     <Box sx={{ 
       minHeight: '100vh', 
-      bgcolor: 'background.default', 
       p: { xs: 2, md: 3 },
       position: 'relative',
+      overflow: 'hidden',
     }}>
-      {/* Animated background particles */}
+      {/* Aurora animated background */}
       <Box
         sx={{
           position: 'fixed',
           top: 0,
           left: 0,
-          right: 0,
-          bottom: 0,
+          width: '100vw',
+          height: '100vh',
           zIndex: -1,
-          background: (theme) => theme.palette.mode === 'dark'
-            ? `radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-               radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 50%)`
-            : `radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
-               radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 50%)`,
         }}
-      />
+      >
+        <Aurora
+          colorStops={[
+            '#6366f1', // primary
+            '#06b6d4', // secondary
+            '#4f46e5', // primary dark
+          ]}
+          blend={6}
+          speed={1.5}
+          amplitude={0.5}
+        />
+      </Box>
 
       {/* Header */}
       <Box sx={{ mb: 4 }}>
@@ -275,10 +282,17 @@ export const ProfilePage: React.FC = () => {
       <GlassCard sx={{ mb: 4 }}>
         <CardContent sx={{ p: 4 }}>
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={4}>            {/* Avatar Section */}
-            <Box sx={{ textAlign: 'center' }}>
+            <Box 
+              sx={{ 
+                textAlign: 'center',
+                alignItems: 'center',
+                justifyContent: 'center',
+                display : 'flex',
+                flexDirection: 'column',
+              }}>
               <UserAvatar
                 user={user}
-                size={120}
+                size={140}
                 sx={{
                   fontSize: '3rem',
                   background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
@@ -290,12 +304,15 @@ export const ProfilePage: React.FC = () => {
                     transform: 'scale(1.05)',
                     boxShadow: '0 16px 50px rgba(99, 102, 241, 0.5)',
                   },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  display : 'flex',
                 }}
               />
               <Button
-                variant="outlined"
+                variant="contained"
                 size="small"
-                sx={{ mt: 2 }}
+                sx={{ mt: 3, width: '100%' }}
                 startIcon={<EditIcon />}
               >
                 Change Photo
@@ -303,14 +320,14 @@ export const ProfilePage: React.FC = () => {
             </Box>
 
             {/* Profile Info */}
-            <Box sx={{ flex: 1 }}>
+            <Box sx={{ flex: 1, marginLeft: 10,px: 4 }}>
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
                 <Typography variant="h5" fontWeight="bold">
                   Personal Information
                 </Typography>
                 {!isEditing ? (
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     startIcon={<EditIcon />}
                     onClick={() => setIsEditing(true)}
                   >
