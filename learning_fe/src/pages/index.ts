@@ -4,3 +4,4 @@ export * from './DashboardPage';
 export * from './LandingPage';
 export * from './ProfilePage';
 export * from './CoursePage';
+export { default as TeacherDashboardPage } from './TeacherDashboardPageSimplified';

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -44,8 +44,10 @@ import {
   BugReport as TestingIcon,
   ExpandLess as ExpandLessIcon,
   Close as CloseIcon,
+  SmartToy as ChatGptIcon,
+  Send as SendIcon,
 } from '@mui/icons-material';
-import { CourseAPI, ProgressAPI } from '../services/api';
+import { CourseAPI, ProgressAPI, ChatAPI } from '../services/api';
 import type { Course, CourseStep, Progress } from '../types';
 import Aurora from '../blocks/Aurora/Aurora';
 import { useTheme } from '@mui/material/styles';
@@ -126,7 +128,7 @@ const ExpandedStepContent = styled(Box)(({ theme }) => ({
   position: 'relative',
 }));
 
-// Helper function to get course thumbnail
+// Helper function to get course thumbnail - memoized
 const getCourseThumbnail = (course: Course): { type: 'image' | 'emoji'; value: string } => {
   if (course.thumbnail && course.thumbnail.trim()) {
     return { type: 'image', value: course.thumbnail };
@@ -150,8 +152,8 @@ const getCourseThumbnail = (course: Course): { type: 'image' | 'emoji'; value: s
   return { type: 'emoji', value: thumbnails[language] || thumbnails.default };
 };
 
-// Helper function to calculate progress
-const getCourseProgress = (_course: Course, courseProgress: Progress | null, steps: CourseStep[], stepProgress: Record<number, Progress>): { progress: number; completed: number; total: number } => {
+// Helper function to calculate progress - memoized
+const getCourseProgress = (courseProgress: Progress | null, steps: CourseStep[], stepProgress: Record<number, Progress>): { progress: number; completed: number; total: number } => {
   const totalSteps = steps.length;
   
   // Count completed steps from step progress
@@ -166,7 +168,8 @@ const getCourseProgress = (_course: Course, courseProgress: Progress | null, ste
   } else {
     progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
   }
-    // Calculate completed count from percentage if course progress is available
+  
+  // Calculate completed count from percentage if course progress is available
   let actualCompletedCount = completedSteps;
   if (courseProgress?.progress_percentage !== undefined && courseProgress.progress_percentage >= 0) {
     actualCompletedCount = Math.round((courseProgress.progress_percentage / 100) * totalSteps);
@@ -179,36 +182,474 @@ const getCourseProgress = (_course: Course, courseProgress: Progress | null, ste
   };
 };
 
-// Helper function to format duration
+// Helper function to format duration - memoized
 const formatDuration = (hours: number): string => {
   if (hours < 1) return '< 1 hour';
   if (hours === 1) return '1 hour';
   return `${hours} hours`;
 };
 
+// Parse step metadata helper - memoized
+const parseStepMetadata = (metadata: string | Record<string, any> | undefined): Record<string, any> => {
+  if (!metadata) return {};
+  if (typeof metadata === 'string') {
+    try {
+      return JSON.parse(metadata);
+    } catch {
+      return {};
+    }
+  }
+  return metadata;
+};
+
+// Memoized step type chip component
+const StepTypeChip = memo(({ stepType }: { stepType: CourseStep['step_type'] }) => {
+  const typeConfig = {
+    theory: { label: 'Theory', color: 'primary' as const, icon: <TheoryIcon sx={{ fontSize: 16 }} /> },
+    review: { label: 'Review', color: 'secondary' as const, icon: <ReviewIcon sx={{ fontSize: 16 }} /> },
+    code: { label: 'Code', color: 'success' as const, icon: <CodeIcon sx={{ fontSize: 16 }} /> },
+    setup: { label: 'Setup', color: 'info' as const, icon: <SetupIcon sx={{ fontSize: 16 }} /> },
+    deployment: { label: 'Deploy', color: 'warning' as const, icon: <DeploymentIcon sx={{ fontSize: 16 }} /> },
+    testing: { label: 'Testing', color: 'error' as const, icon: <TestingIcon sx={{ fontSize: 16 }} /> },
+  };
+  
+  const config = typeConfig[stepType] || typeConfig.theory;
+  return (
+    <Chip 
+      label={config.label} 
+      color={config.color} 
+      size="small" 
+      variant="outlined"
+      icon={config.icon}
+    />
+  );
+});
+
+// Memoized step difficulty chip component
+const StepDifficultyChip = memo(({ metadata }: { metadata: Record<string, any> }) => {
+  const difficulty = metadata.difficulty || 'easy';
+  
+  const difficultyConfig = {
+    easy: { label: 'Easy', color: 'success' as const },
+    medium: { label: 'Medium', color: 'warning' as const },
+    hard: { label: 'Hard', color: 'error' as const },
+  };
+  
+  const config = difficultyConfig[difficulty as keyof typeof difficultyConfig] || difficultyConfig.easy;
+  return <Chip label={config.label} color={config.color} size="small" />;
+});
+
+// Memoized step duration formatter
+const StepDuration = memo(({ step }: { step: CourseStep }) => {
+  const metadata = useMemo(() => parseStepMetadata(step.metadata), [step.metadata]);
+  
+  const duration = useMemo(() => {
+    // Try to extract duration from metadata
+    if (metadata.estimated_time) {
+      return metadata.estimated_time;
+    }
+    
+    // Estimate based on content length (rough approximation)
+    const contentLength = step.content ? step.content.length : 0;
+    const estimatedMinutes = Math.max(5, Math.ceil(contentLength / 200)); // ~200 chars per minute reading
+    return `${estimatedMinutes} min`;
+  }, [metadata, step.content]);
+
+  return (
+    <Typography variant="body2" color="text.secondary">
+      {duration}
+    </Typography>
+  );
+});
+
+// Memoized individual step component
+const CourseStepItem = memo(({ 
+  step, 
+  isExpanded, 
+  isCollapsed, 
+  isCompleted, 
+  isMarkingComplete, 
+  isEnrolled,
+  onStepClick,
+  onCloseStep,
+  onMarkComplete,
+  onOpenChat
+}: {
+  step: CourseStep;
+  isExpanded: boolean;
+  isCollapsed: boolean;
+  isCompleted: boolean;
+  isMarkingComplete: boolean;
+  isEnrolled: boolean;
+  onStepClick: (stepId: number) => void;
+  onCloseStep: () => void;
+  onMarkComplete: (step: CourseStep) => void;
+  onOpenChat: (step: CourseStep) => void;
+}) => {
+  const metadata = useMemo(() => parseStepMetadata(step.metadata), [step.metadata]);
+  
+  const stepIcon = useMemo(() => {
+    return isCompleted ? <CheckCircleIcon sx={{ color: 'success.main' }} /> : <RadioButtonUncheckedIcon sx={{ color: 'text.secondary' }} />;
+  }, [isCompleted]);
+
+  const handleClick = useCallback(() => {
+    onStepClick(step.id);
+  }, [step.id, onStepClick]);
+  const handleMarkCompleteClick = useCallback(() => {
+    onMarkComplete(step);
+  }, [step, onMarkComplete]);
+
+  const handleOpenChatClick = useCallback(() => {
+    onOpenChat(step);
+  }, [step, onOpenChat]);
+
+  return (
+    <Box id={`step-${step.id}`}>
+      <StepCard 
+        elevation={0}
+        onClick={handleClick}
+        sx={{
+          cursor: isEnrolled ? 'pointer' : 'default',
+          opacity: isEnrolled ? (isCollapsed ? 0.3 : 1) : 0.7,
+          transform: isCollapsed ? 'scale(0.95)' : 'scale(1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          border: isExpanded ? '2px solid' : '1px solid',          borderColor: isExpanded ? 'primary.main' : (isCompleted ? 'success.main' : 'transparent'),
+          backgroundColor: isCompleted ? (theme) => 
+            theme.palette.mode === 'dark' 
+              ? 'rgba(76, 175, 80, 0.1)' 
+              : 'rgba(76, 175, 80, 0.05)'
+            : undefined,
+        }}
+      >
+        <Stack direction="row" alignItems="flex-start" spacing={3}>
+          {/* Step Icon */}
+          <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 24, mt: 0.5 }}>
+            {stepIcon}
+          </Box>
+
+          {/* Step Number/Order */}
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            color={isExpanded ? 'primary.main' : 'text.secondary'}
+            sx={{ minWidth: 32, mt: 0.5 }}
+          >
+            {step.step_order}
+          </Typography>
+
+          {/* Step Info */}
+          <Box sx={{ flex: 1 }}>
+            <Stack spacing={2}>
+              {/* Title and Type */}
+              <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
+                <Typography 
+                  variant="h6" 
+                  fontWeight="medium"
+                  color={isExpanded ? 'primary.main' : (isCompleted ? 'success.main' : 'text.primary')}
+                  sx={{
+                    textDecoration: isCompleted ? 'line-through' : 'none',
+                    opacity: isCompleted ? 0.8 : 1,
+                  }}
+                >
+                  {step.title} {isCompleted && '✓'}
+                </Typography>
+                
+                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                  <StepTypeChip stepType={step.step_type} />
+                  {metadata.difficulty && <StepDifficultyChip metadata={metadata} />}
+                  <StepDuration step={step} />
+                  {step.is_required && (
+                    <Chip label="Required" color="error" size="small" variant="outlined" />
+                  )}
+                  {isCompleted && (
+                    <Chip 
+                      label="Completed" 
+                      color="success" 
+                      size="small" 
+                      icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+                    />
+                  )}
+                </Stack>
+              </Stack>
+              
+              {/* Description - only show if not expanded or if collapsed */}
+              {!isExpanded && step.description && (
+                <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
+                  {step.description}
+                </Typography>
+              )}
+            </Stack>
+          </Box>
+
+          {/* Action Button */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            {isExpanded && (
+              <Tooltip title="Close lesson">
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCloseStep();
+                  }}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>            )}
+            
+            {/* ChatGPT button */}
+            <Tooltip title="Ask ChatGPT about this step">
+              <span>
+                <IconButton
+                  disabled={!isEnrolled}                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenChatClick();
+                  }}
+                  sx={{
+                    bgcolor: 'secondary.main',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: 'secondary.dark',
+                    },
+                    '&:disabled': {
+                      bgcolor: 'action.disabledBackground',
+                      color: 'action.disabled',
+                    },
+                  }}
+                >
+                  <ChatGptIcon />
+                </IconButton>
+              </span>
+            </Tooltip>
+            
+            <Tooltip title={isEnrolled ? (isExpanded ? "Collapse lesson" : "Start lesson") : "Enroll to access lesson"}>
+              <span>
+                <IconButton
+                  disabled={!isEnrolled}
+                  sx={{
+                    bgcolor: isExpanded ? 'success.main' : 'primary.main',
+                    color: 'white',
+                    '&:hover': {
+                      bgcolor: isExpanded ? 'success.dark' : 'primary.dark',
+                    },
+                    '&:disabled': {
+                      bgcolor: 'action.disabledBackground',
+                      color: 'action.disabled',
+                    },
+                  }}
+                >
+                  {isExpanded ? <ExpandLessIcon /> : <PlayIcon />}
+                </IconButton>
+              </span>
+            </Tooltip>
+          </Stack>
+        </Stack>
+      </StepCard>
+
+      {/* Expanded Content */}
+      <Collapse in={isExpanded} timeout={300}>
+        <ExpandedStepContent>
+          {/* Close button */}
+          <IconButton
+            onClick={onCloseStep}
+            sx={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'background.paper',
+              '&:hover': { bgcolor: 'action.hover' }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+
+          <Stack spacing={3}>
+            {/* Step Header */}
+            <Box>
+              <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+                <Typography variant="h4" fontWeight="bold" color="primary.main">
+                  Step {step.step_order}: {step.title}
+                </Typography>
+              </Stack>
+              
+              <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                <StepTypeChip stepType={step.step_type} />
+                {metadata.difficulty && <StepDifficultyChip metadata={metadata} />}
+                <Chip 
+                  label={<StepDuration step={step} />} 
+                  variant="outlined" 
+                  size="small"
+                  icon={<TimeIcon sx={{ fontSize: 16 }} />}
+                />
+                {step.is_required && (
+                  <Chip label="Required" color="error" size="small" variant="outlined" />
+                )}
+              </Stack>
+            </Box>
+
+            <Divider />
+
+            {/* Step Description */}
+            {step.description && (
+              <Box>
+                <Typography variant="h6" gutterBottom fontWeight="medium">
+                  Overview
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
+                  {step.description}
+                </Typography>
+              </Box>
+            )}
+
+            {/* Step Content */}
+            <Box>
+              <Typography variant="h6" gutterBottom fontWeight="medium">
+                Lesson Content
+              </Typography>
+              <Typography variant="body1" sx={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                {step.content}
+              </Typography>
+            </Box>
+
+            {/* Action Buttons */}
+            <Stack direction="row" spacing={2} sx={{ pt: 2 }}>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={isCompleted ? <CheckCircleIcon /> : (isMarkingComplete ? <CircularProgress size={16} /> : <CheckCircleIcon />)}
+                disabled={isCompleted || isMarkingComplete}
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                  borderRadius: 3,
+                  background: isCompleted 
+                    ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                    : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  },
+                  '&:disabled': {
+                    background: isCompleted 
+                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                      : 'rgba(0, 0, 0, 0.12)',
+                    color: isCompleted ? 'white' : 'rgba(0, 0, 0, 0.26)',
+                  }
+                }}
+                onClick={handleMarkCompleteClick}
+              >
+                {isMarkingComplete ? 'Marking Complete...' : (isCompleted ? 'Completed' : 'Mark Complete')}
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={onCloseStep}
+                sx={{ px: 4, py: 1.5, borderRadius: 3 }}
+              >
+                Close
+              </Button>
+            </Stack>
+          </Stack>
+        </ExpandedStepContent>
+      </Collapse>
+    </Box>
+  );
+});
+
 export const CoursePage: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const theme = useTheme();
+  
+  // State
   const [course, setCourse] = useState<Course | null>(null);
   const [steps, setSteps] = useState<CourseStep[]>([]);
   const [stepProgress, setStepProgress] = useState<Record<number, Progress>>({});
   const [courseProgress, setCourseProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
-  const [stepsLoading, setStepsLoading] = useState(false);  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [stepsLoading, setStepsLoading] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [expandedStepId, setExpandedStepId] = useState<number | null>(null);
   const [markingComplete, setMarkingComplete] = useState<Record<number, boolean>>({});
   const [stepStartTimes, setStepStartTimes] = useState<Record<number, number>>({});
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
   const [selectedStepForCompletion, setSelectedStepForCompletion] = useState<CourseStep | null>(null);
-  const [userNotes, setUserNotes] = useState('');const theme = useTheme();
-  const auroraColorStops = [
+  const [userNotes, setUserNotes] = useState('');
+  
+  // Chat modal states
+  const [chatModalOpen, setChatModalOpen] = useState(false);
+  const [selectedStepForChat, setSelectedStepForChat] = useState<CourseStep | null>(null);
+  const [chatMessage, setChatMessage] = useState('');
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'bot', content: string}>>([]);
+  const [sendingMessage, setSendingMessage] = useState(false);
+
+  // Memoized values
+  const auroraColorStops = useMemo(() => [
     theme.palette.primary.main,
     theme.palette.secondary.main,
     theme.palette.primary.dark,
-  ];
+  ], [theme.palette.primary.main, theme.palette.secondary.main, theme.palette.primary.dark]);
 
+  const thumbnail = useMemo(() => 
+    course ? getCourseThumbnail(course) : null
+  , [course]);
+
+  const progress = useMemo(() => 
+    course ? getCourseProgress(courseProgress, steps, stepProgress) : { progress: 0, completed: 0, total: 0 }
+  , [course, courseProgress, steps, stepProgress]);
+
+  const isEnrolled = useMemo(() => !!course?.enrollment, [course]);
+
+  const completedStepsCount = useMemo(() => 
+    Object.values(stepProgress).filter(p => p.status === 'completed' || p.status === 'solved').length
+  , [stepProgress]);
+
+  // Optimized progress data fetching with debouncing
+  const fetchProgressData = useCallback(async (courseId: number, _courseSteps: CourseStep[]) => {
+    try {
+      // Fetch both progress data concurrently
+      const [courseProgressResponse, stepsProgressResponse] = await Promise.all([
+        ProgressAPI.getCourseProgress(courseId),
+        ProgressAPI.getCourseStepsProgress(courseId)
+      ]);
+      
+      if (courseProgressResponse.success && courseProgressResponse.data) {
+        setCourseProgress(courseProgressResponse.data);
+      }
+
+      if (stepsProgressResponse.success && stepsProgressResponse.data) {
+        // Create a map of step_id to progress
+        const progressMap: Record<number, Progress> = {};
+        
+        // The backend returns steps with nested progress
+        if (Array.isArray(stepsProgressResponse.data)) {
+          stepsProgressResponse.data.forEach((item: any) => {
+            // Check if it's a step with nested progress or direct progress
+            if (item.progress && Array.isArray(item.progress) && item.progress.length > 0) {
+              // Step with nested progress array
+              const progress = item.progress[0]; // Take the first progress entry
+              progressMap[item.id] = progress;
+            } else if (item.progress && !Array.isArray(item.progress)) {
+              // Step with single nested progress object
+              progressMap[item.id] = item.progress;
+            } else if (item.step_id || item.course_step_id) {
+              // Direct progress object
+              const stepId = item.step_id || item.course_step_id;
+              if (stepId) {
+                progressMap[stepId] = item;
+              }
+            }
+          });
+        }
+        
+        setStepProgress(progressMap);
+      }
+    } catch (err) {
+      console.error('Progress fetch error:', err);
+    }
+  }, []);
+
+  // Optimized course data fetching
   useEffect(() => {
     const fetchCourseData = async () => {
       if (!courseId) return;
@@ -246,148 +687,13 @@ export const CoursePage: React.FC = () => {
       } finally {
         setLoading(false);
       }
-    };    fetchCourseData();
-  }, [courseId]);
-
-  const fetchProgressData = async (courseId: number, _courseSteps: CourseStep[]) => {
-    try {
-      // Fetch course progress
-      const courseProgressResponse = await ProgressAPI.getCourseProgress(courseId);
-      if (courseProgressResponse.success && courseProgressResponse.data) {
-        setCourseProgress(courseProgressResponse.data);
-      }      // Fetch steps progress
-      const stepsProgressResponse = await ProgressAPI.getCourseStepsProgress(courseId);
-      if (stepsProgressResponse.success && stepsProgressResponse.data) {
-        // Create a map of step_id to progress
-        const progressMap: Record<number, Progress> = {};
-        
-        // The backend returns steps with nested progress
-        if (Array.isArray(stepsProgressResponse.data)) {
-          stepsProgressResponse.data.forEach((item: any) => {
-            // Check if it's a step with nested progress or direct progress
-            if (item.progress && Array.isArray(item.progress) && item.progress.length > 0) {
-              // Step with nested progress array
-              const progress = item.progress[0]; // Take the first progress entry
-              progressMap[item.id] = progress;
-            } else if (item.progress && !Array.isArray(item.progress)) {
-              // Step with single nested progress object
-              progressMap[item.id] = item.progress;
-            } else if (item.step_id || item.course_step_id) {
-              // Direct progress object
-              const stepId = item.step_id || item.course_step_id;
-              if (stepId) {
-                progressMap[stepId] = item;
-              }
-            }
-          });
-        }
-        
-        console.log('Processed step progress map:', progressMap);
-        setStepProgress(progressMap);
-      }
-    } catch (err) {
-      console.error('Progress fetch error:', err);
-    }
-  };
-
-  if (loading) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh' 
-      }}>
-        <CircularProgress size={48} />
-      </Box>
-    );
-  }
-
-  if (!course) {
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        minHeight: '100vh',
-        p: 3,
-      }}>
-        <Typography variant="h4" gutterBottom>Course Not Found</Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          The course you're looking for doesn't exist or has been removed.
-        </Typography>
-        <Button sx={{color:'white !important'}} onClick={() => navigate('/dashboard')}>
-          Back to Dashboard
-        </Button>
-      </Box>
-    );  }
-  const thumbnail = getCourseThumbnail(course);
-  const progress = getCourseProgress(course, courseProgress, steps, stepProgress);
-  const isEnrolled = !!course.enrollment;
-  // Helper functions for step rendering
-  const parseStepMetadata = (metadata: string | Record<string, any> | undefined): Record<string, any> => {
-    if (!metadata) return {};
-    if (typeof metadata === 'string') {
-      try {
-        return JSON.parse(metadata);
-      } catch {
-        return {};
-      }
-    }
-    return metadata;
-  };  const getStepIcon = (step: CourseStep) => {
-    const progress = stepProgress[step.id];
-    const isCompleted = progress?.status === 'completed' || progress?.status === 'solved';
-    
-    if (isCompleted) return <CheckCircleIcon sx={{ color: 'success.main' }} />;
-    return <RadioButtonUncheckedIcon sx={{ color: 'text.secondary' }} />;
-  };const getStepTypeChip = (stepType: CourseStep['step_type']) => {
-    const typeConfig = {
-      theory: { label: 'Theory', color: 'primary' as const, icon: <TheoryIcon sx={{ fontSize: 16 }} /> },
-      review: { label: 'Review', color: 'secondary' as const, icon: <ReviewIcon sx={{ fontSize: 16 }} /> },
-      code: { label: 'Code', color: 'success' as const, icon: <CodeIcon sx={{ fontSize: 16 }} /> },
-      setup: { label: 'Setup', color: 'info' as const, icon: <SetupIcon sx={{ fontSize: 16 }} /> },
-      deployment: { label: 'Deploy', color: 'warning' as const, icon: <DeploymentIcon sx={{ fontSize: 16 }} /> },
-      testing: { label: 'Testing', color: 'error' as const, icon: <TestingIcon sx={{ fontSize: 16 }} /> },
     };
-    
-    const config = typeConfig[stepType] || typeConfig.theory;
-    return (
-      <Chip 
-        label={config.label} 
-        color={config.color} 
-        size="small" 
-        variant="outlined"
-        icon={config.icon}
-      />
-    );
-  };  const formatStepDuration = (step: CourseStep): string => {
-    const metadata = parseStepMetadata(step.metadata);
-    
-    // Try to extract duration from metadata
-    if (metadata.estimated_time) {
-      return metadata.estimated_time;
-    }
-    
-    // Estimate based on content length (rough approximation)
-    const contentLength = step.content ? step.content.length : 0;
-    const estimatedMinutes = Math.max(5, Math.ceil(contentLength / 200)); // ~200 chars per minute reading
-    return `${estimatedMinutes} min`;
-  };
-  const getStepDifficultyChip = (step: CourseStep) => {
-    const metadata = parseStepMetadata(step.metadata);
-    const difficulty = metadata.difficulty || 'easy';
-    
-    const difficultyConfig = {
-      easy: { label: 'Easy', color: 'success' as const },
-      medium: { label: 'Medium', color: 'warning' as const },
-      hard: { label: 'Hard', color: 'error' as const },
-    };
-    
-    const config = difficultyConfig[difficulty as keyof typeof difficultyConfig] || difficultyConfig.easy;
-    return <Chip label={config.label} color={config.color} size="small" />;
-  };  const handleStepClick = (stepId: number) => {
+
+    fetchCourseData();
+  }, [courseId, fetchProgressData]);
+
+  // Optimized step click handler
+  const handleStepClick = useCallback((stepId: number) => {
     if (!isEnrolled) return;
     
     if (expandedStepId === stepId) {
@@ -412,10 +718,13 @@ export const CoursePage: React.FC = () => {
         }
       }, 100);
     }
-  };
-  const handleCloseStep = () => {
+  }, [isEnrolled, expandedStepId]);
+
+  const handleCloseStep = useCallback(() => {
     setExpandedStepId(null);
-  };  const handleMarkComplete = async (step: CourseStep) => {
+  }, []);
+
+  const handleMarkComplete = useCallback(async (step: CourseStep) => {
     // Check if step is already completed
     const stepProgressData = stepProgress[step.id];
     if (stepProgressData?.status === 'completed' || stepProgressData?.status === 'solved') {
@@ -428,7 +737,24 @@ export const CoursePage: React.FC = () => {
     setSelectedStepForCompletion(step);
     setUserNotes('');
     setCompletionDialogOpen(true);
-  };const handleConfirmCompletion = async () => {
+  }, [stepProgress]);
+
+  // Optimized refresh progress data
+  const refreshAllProgressData = useCallback(async () => {
+    if (!courseId) return;
+    
+    try {
+      // Add a small delay to ensure backend has processed the update
+      await new Promise(resolve => setTimeout(resolve, 500)); // Reduced delay
+      
+      // Fetch both progress data concurrently
+      await fetchProgressData(parseInt(courseId), steps);
+    } catch (error) {
+      console.error('Error refreshing progress data:', error);
+    }
+  }, [courseId, steps, fetchProgressData]);
+
+  const handleConfirmCompletion = useCallback(async () => {
     const step = selectedStepForCompletion;
     if (!courseId || !step || markingComplete[step.id]) return;
 
@@ -440,24 +766,23 @@ export const CoursePage: React.FC = () => {
       setCompletionDialogOpen(false);
       setSelectedStepForCompletion(null);
       return;
-    }    setMarkingComplete(prev => ({ ...prev, [step.id]: true }));
+    }
+
+    setMarkingComplete(prev => ({ ...prev, [step.id]: true }));
     setCompletionDialogOpen(false);
     
     try {
       // Calculate read time based on when the step was opened
       const startTime = stepStartTimes[step.id];
       const readTime = startTime ? Math.round((Date.now() - startTime) / 1000 / 60) : 5; // Convert to minutes, default 5 if not tracked
-      
-      const payload = {
-        status: 'solved' as const,
+        const payload = {
+        status: 'completed' as const,
         progress_data: {
           read_time: Math.max(1, readTime), // Minimum 1 minute
           notes: userNotes || ''
         },
         notes: userNotes || ''
       };
-      
-      console.log('Sending step completion payload:', payload);
       
       // Mark step as completed with proper payload structure
       const response = await ProgressAPI.updateStepProgress(step.id, payload);
@@ -514,50 +839,114 @@ export const CoursePage: React.FC = () => {
       setMarkingComplete(prev => ({ ...prev, [step.id]: false }));
       setSelectedStepForCompletion(null);
     }
-  };  // Helper function to refresh all progress data
-  const refreshAllProgressData = async () => {
-    if (!courseId) return;
-    
+  }, [courseId, selectedStepForCompletion, markingComplete, stepProgress, stepStartTimes, userNotes, refreshAllProgressData, expandedStepId, steps]);
+
+  // Chat handlers
+  const handleOpenChat = useCallback((step: CourseStep) => {
+    setSelectedStepForChat(step);
+    setChatModalOpen(true);
+    setChatMessages([]); // Reset messages for new chat
+    setChatMessage('');
+  }, []);
+
+  const handleCloseChat = useCallback(() => {
+    setChatModalOpen(false);
+    setSelectedStepForChat(null);
+    setChatMessages([]);
+    setChatMessage('');
+  }, []);
+
+  const handleSendMessage = useCallback(async () => {
+    if (!selectedStepForChat || !chatMessage.trim() || sendingMessage) return;
+
+    const userMessage = chatMessage.trim();
+    setSendingMessage(true);
+
     try {
-      // Add a small delay to ensure backend has processed the update
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Fetch fresh course progress
-      const courseProgressResponse = await ProgressAPI.getCourseProgress(parseInt(courseId));
-      if (courseProgressResponse.success && courseProgressResponse.data) {
-        setCourseProgress(courseProgressResponse.data);
-      }      // Fetch fresh step progress
-      const stepsProgressResponse = await ProgressAPI.getCourseStepsProgress(parseInt(courseId));
-      if (stepsProgressResponse.success && stepsProgressResponse.data) {
-        const progressMap: Record<number, Progress> = {};
-        
-        // The backend returns steps with nested progress
-        if (Array.isArray(stepsProgressResponse.data)) {
-          stepsProgressResponse.data.forEach((item: any) => {
-            // Check if it's a step with nested progress or direct progress
-            if (item.progress && Array.isArray(item.progress) && item.progress.length > 0) {
-              // Step with nested progress array
-              const progress = item.progress[0]; // Take the first progress entry
-              progressMap[item.id] = progress;
-            } else if (item.progress && !Array.isArray(item.progress)) {
-              // Step with single nested progress object
-              progressMap[item.id] = item.progress;
-            } else if (item.step_id || item.course_step_id) {
-              // Direct progress object
-              const stepId = item.step_id || item.course_step_id;
-              if (stepId) {
-                progressMap[stepId] = item;
-              }
-            }
-          });
+      // Add user message to chat immediately
+      setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+      setChatMessage('');      // Call the backend API
+      const response = await ChatAPI.sendCourseMessage(parseInt(courseId!), {
+        message: userMessage,
+        context_data: {
+          step_id: selectedStepForChat.id,
+          code_snippet: null,
+          difficulty: "understanding syntax"
         }
-        
-        setStepProgress(progressMap);
+      });
+
+      if (response.success) {
+        // Add bot response to chat
+        setChatMessages(prev => [...prev, { role: 'bot', content: response.data?.bot_response.message || 'Sorry, I could not generate a response.' }]);
+      } else {
+        // Show error message in chat
+        setChatMessages(prev => [...prev, { role: 'bot', content: 'Sorry, there was an error processing your request. Please try again.' }]);
       }
     } catch (error) {
-      console.error('Error refreshing progress data:', error);
+      console.error('Error sending chat message:', error);
+      setChatMessages(prev => [...prev, { role: 'bot', content: 'Sorry, there was an error processing your request. Please try again.' }]);
+    } finally {
+      setSendingMessage(false);
     }
-  };
+  }, [selectedStepForChat, chatMessage, sendingMessage, courseId]);
+
+  const handleChatKeyPress = useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
+
+  // Memoized step data for rendering
+  const stepRenderData = useMemo(() => {
+    return steps.map(step => {
+      const isExpanded = expandedStepId === step.id;
+      const isCollapsed = expandedStepId !== null && expandedStepId !== step.id;
+      const progress = stepProgress[step.id];
+      const isCompleted = progress?.status === 'completed' || progress?.status === 'solved';
+      const isMarkingComplete = markingComplete[step.id] || false;
+
+      return {
+        step,
+        isExpanded,
+        isCollapsed,
+        isCompleted,
+        isMarkingComplete
+      };
+    });
+  }, [steps, expandedStepId, stepProgress, markingComplete]);
+
+  if (loading) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh' 
+      }}>
+        <CircularProgress size={48} />
+      </Box>
+    );
+  }  if (!course) {
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        p: 3,
+      }}>
+        <Typography variant="h4" gutterBottom>Course Not Found</Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          The course you're looking for doesn't exist or has been removed.
+        </Typography>
+        <Button sx={{color:'white !important'}} onClick={() => navigate('/dashboard')}>
+          Back to Dashboard
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ 
@@ -598,8 +987,7 @@ export const CoursePage: React.FC = () => {
         <HeroSection sx={{ mb: 4 }}>
           <Box sx={{ position: 'relative', zIndex: 1, p: 4 }}>
             <Stack direction={{ xs: 'column', md: 'row' }} spacing={4} alignItems="flex-start">
-              {/* Course Image */}
-              <Box
+              {/* Course Image */}              <Box
                 sx={{
                   width: { xs: '100%', md: 280 },
                   height: { xs: 200, md: 180 },
@@ -612,7 +1000,7 @@ export const CoursePage: React.FC = () => {
                   boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
                 }}
               >
-                {thumbnail.type === 'image' ? (
+                {thumbnail?.type === 'image' ? (
                   <img
                     src={thumbnail.value}
                     alt={course.title}
@@ -632,7 +1020,7 @@ export const CoursePage: React.FC = () => {
                   />
                 ) : (
                   <Typography sx={{ fontSize: '4rem' }}>
-                    {thumbnail.value}
+                    {thumbnail?.value || '📚'}
                   </Typography>
                 )}
               </Box>
@@ -759,237 +1147,24 @@ export const CoursePage: React.FC = () => {
               </Box>
             ) : steps.length > 0 ? (
               <>                <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                  {steps.length} lessons • {Object.values(stepProgress).filter(p => p.status === 'completed' || p.status === 'solved').length} completed
-                </Typography><Stack spacing={2}>                  {steps.map((step) => {
-                    const isExpanded = expandedStepId === step.id;
-                    const isCollapsed = expandedStepId !== null && expandedStepId !== step.id;
-                    const progress = stepProgress[step.id];
-                    const isCompleted = progress?.status === 'completed' || progress?.status === 'solved';
-                    const isMarkingComplete = markingComplete[step.id] || false;
-                    
-                    return (
-                      <Box key={step.id} id={`step-${step.id}`}>
-                        <StepCard 
-                          elevation={0}
-                          onClick={() => handleStepClick(step.id)}                          sx={{
-                            cursor: isEnrolled ? 'pointer' : 'default',
-                            opacity: isEnrolled ? (isCollapsed ? 0.3 : 1) : 0.7,
-                            transform: isCollapsed ? 'scale(0.95)' : 'scale(1)',
-                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                            border: isExpanded ? '2px solid' : '1px solid',
-                            borderColor: isExpanded ? 'primary.main' : (isCompleted ? 'success.main' : 'transparent'),
-                            backgroundColor: isCompleted ? (theme) => 
-                              theme.palette.mode === 'dark' 
-                                ? 'rgba(76, 175, 80, 0.1)' 
-                                : 'rgba(76, 175, 80, 0.05)'
-                              : undefined,
-                          }}
-                        >
-                          <Stack direction="row" alignItems="flex-start" spacing={3}>
-                            {/* Step Icon */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 24, mt: 0.5 }}>
-                              {getStepIcon(step)}
-                            </Box>
+                  {steps.length} lessons • {completedStepsCount} completed
+                </Typography>
 
-                            {/* Step Number/Order */}
-                            <Typography
-                              variant="h6"
-                              fontWeight="bold"
-                              color={isExpanded ? 'primary.main' : 'text.secondary'}
-                              sx={{ minWidth: 32, mt: 0.5 }}
-                            >
-                              {step.step_order}
-                            </Typography>
-
-                            {/* Step Info */}
-                            <Box sx={{ flex: 1 }}>
-                              <Stack spacing={2}>
-                                {/* Title and Type */}
-                                <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>                                  <Typography 
-                                    variant="h6" 
-                                    fontWeight="medium"
-                                    color={isExpanded ? 'primary.main' : (isCompleted ? 'success.main' : 'text.primary')}
-                                    sx={{
-                                      textDecoration: isCompleted ? 'line-through' : 'none',
-                                      opacity: isCompleted ? 0.8 : 1,
-                                    }}
-                                  >
-                                    {step.title} {isCompleted && '✓'}
-                                  </Typography>                                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                                    {getStepTypeChip(step.step_type)}
-                                    {parseStepMetadata(step.metadata).difficulty && getStepDifficultyChip(step)}
-                                    <Typography variant="body2" color="text.secondary">
-                                      {formatStepDuration(step)}
-                                    </Typography>
-                                    {step.is_required && (
-                                      <Chip label="Required" color="error" size="small" variant="outlined" />
-                                    )}
-                                    {isCompleted && (
-                                      <Chip 
-                                        label="Completed" 
-                                        color="success" 
-                                        size="small" 
-                                        icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
-                                      />
-                                    )}
-                                  </Stack>
-                                </Stack>
-                                
-                                {/* Description - only show if not expanded or if collapsed */}
-                                {!isExpanded && step.description && (
-                                  <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6 }}>
-                                    {step.description}
-                                  </Typography>
-                                )}
-                              </Stack>
-                            </Box>
-
-                            {/* Action Button */}
-                            <Stack direction="row" spacing={1} alignItems="center">
-                              {isExpanded && (
-                                <Tooltip title="Close lesson">
-                                  <IconButton
-                                    size="small"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleCloseStep();
-                                    }}
-                                    sx={{ color: 'text.secondary' }}
-                                  >
-                                    <CloseIcon />
-                                  </IconButton>
-                                </Tooltip>
-                              )}
-                              
-                              <Tooltip title={isEnrolled ? (isExpanded ? "Collapse lesson" : "Start lesson") : "Enroll to access lesson"}>
-                                <span>
-                                  <IconButton
-                                    disabled={!isEnrolled}
-                                    sx={{
-                                      bgcolor: isExpanded ? 'success.main' : 'primary.main',
-                                      color: 'white',
-                                      '&:hover': {
-                                        bgcolor: isExpanded ? 'success.dark' : 'primary.dark',
-                                      },
-                                      '&:disabled': {
-                                        bgcolor: 'action.disabledBackground',
-                                        color: 'action.disabled',
-                                      },
-                                    }}
-                                  >
-                                    {isExpanded ? <ExpandLessIcon /> : <PlayIcon />}
-                                  </IconButton>
-                                </span>
-                              </Tooltip>
-                            </Stack>
-                          </Stack>
-                        </StepCard>
-
-                        {/* Expanded Content */}
-                        <Collapse in={isExpanded} timeout={300}>
-                          <ExpandedStepContent>
-                            {/* Close button */}
-                            <IconButton
-                              onClick={handleCloseStep}
-                              sx={{
-                                position: 'absolute',
-                                top: 16,
-                                right: 16,
-                                bgcolor: 'background.paper',
-                                '&:hover': { bgcolor: 'action.hover' }
-                              }}
-                            >
-                              <CloseIcon />
-                            </IconButton>
-
-                            <Stack spacing={3}>
-                              {/* Step Header */}
-                              <Box>
-                                <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
-                                  <Typography variant="h4" fontWeight="bold" color="primary.main">
-                                    Step {step.step_order}: {step.title}
-                                  </Typography>
-                                </Stack>
-                                
-                                <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                                  {getStepTypeChip(step.step_type)}
-                                  {parseStepMetadata(step.metadata).difficulty && getStepDifficultyChip(step)}
-                                  <Chip 
-                                    label={formatStepDuration(step)} 
-                                    variant="outlined" 
-                                    size="small"
-                                    icon={<TimeIcon sx={{ fontSize: 16 }} />}
-                                  />
-                                  {step.is_required && (
-                                    <Chip label="Required" color="error" size="small" variant="outlined" />
-                                  )}
-                                </Stack>
-                              </Box>
-
-                              <Divider />
-
-                              {/* Step Description */}
-                              {step.description && (
-                                <Box>
-                                  <Typography variant="h6" gutterBottom fontWeight="medium">
-                                    Overview
-                                  </Typography>
-                                  <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                                    {step.description}
-                                  </Typography>
-                                </Box>
-                              )}
-
-                              {/* Step Content */}
-                              <Box>
-                                <Typography variant="h6" gutterBottom fontWeight="medium">
-                                  Lesson Content
-                                </Typography>
-                                <Typography variant="body1" sx={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                                  {step.content}
-                                </Typography>
-                              </Box>                              {/* Action Buttons */}
-                              <Stack direction="row" spacing={2} sx={{ pt: 2 }}>                                <Button
-                                  variant="contained"
-                                  size="large"
-                                  startIcon={isCompleted ? <CheckCircleIcon /> : (isMarkingComplete ? <CircularProgress size={16} /> : <CheckCircleIcon />)}
-                                  disabled={isCompleted || isMarkingComplete}
-                                  sx={{
-                                    px: 4,
-                                    py: 1.5,
-                                    borderRadius: 3,
-                                    background: isCompleted 
-                                      ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                                      : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                                    '&:hover': {
-                                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                                    },
-                                    '&:disabled': {
-                                      background: isCompleted 
-                                        ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                                        : 'rgba(0, 0, 0, 0.12)',
-                                      color: isCompleted ? 'white' : 'rgba(0, 0, 0, 0.26)',
-                                    }
-                                  }}
-                                  onClick={() => handleMarkComplete(step)}
-                                >
-                                  {isMarkingComplete ? 'Marking Complete...' : (isCompleted ? 'Completed' : 'Mark Complete')}
-                                </Button>
-                                <Button
-                                  variant="outlined"
-                                  size="large"
-                                  onClick={handleCloseStep}
-                                  sx={{ px: 4, py: 1.5, borderRadius: 3 }}
-                                >
-                                  Close
-                                </Button>
-                              </Stack>
-                            </Stack>
-                          </ExpandedStepContent>
-                        </Collapse>
-                      </Box>
-                    );
-                  })}
+                <Stack spacing={2}>
+                  {stepRenderData.map(({ step, isExpanded, isCollapsed, isCompleted, isMarkingComplete }) => (                    <CourseStepItem
+                      key={step.id}
+                      step={step}
+                      isExpanded={isExpanded}
+                      isCollapsed={isCollapsed}
+                      isCompleted={isCompleted}
+                      isMarkingComplete={isMarkingComplete}
+                      isEnrolled={isEnrolled}
+                      onStepClick={handleStepClick}
+                      onCloseStep={handleCloseStep}
+                      onMarkComplete={handleMarkComplete}
+                      onOpenChat={handleOpenChat}
+                    />
+                  ))}
                 </Stack>
               </>
             ) : (
@@ -1084,9 +1259,146 @@ export const CoursePage: React.FC = () => {
             }}
           >
             Mark Complete
+          </Button>        </DialogActions>
+      </Dialog>
+
+      {/* Chat Modal */}
+      <Dialog 
+        open={chatModalOpen} 
+        onClose={handleCloseChat}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: (theme) => theme.palette.mode === 'dark' 
+              ? 'rgb(30, 41, 59)' 
+              : 'rgb(255, 255, 255)',
+            height: '70vh',
+            maxHeight: '600px',
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <ChatGptIcon sx={{ color: 'secondary.main' }} />
+            <Typography variant="h6">
+              Ask ChatGPT about: {selectedStepForChat?.title}
+            </Typography>
+          </Stack>
+          <IconButton onClick={handleCloseChat}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', p: 0 }}>
+          {/* Chat Messages */}
+          <Box sx={{ 
+            flex: 1, 
+            p: 2, 
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2
+          }}>
+            {chatMessages.length === 0 ? (
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                height: '100%',
+                textAlign: 'center',
+                color: 'text.secondary'
+              }}>
+                <Typography>
+                  Ask ChatGPT anything about this step - concepts, syntax, examples, or debugging help!
+                </Typography>
+              </Box>
+            ) : (
+              chatMessages.map((msg, index) => (
+                <Paper
+                  key={index}
+                  sx={{
+                    p: 2,
+                    alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: '80%',
+                    bgcolor: msg.role === 'user' 
+                      ? 'primary.main' 
+                      : (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                    color: msg.role === 'user' ? 'primary.contrastText' : 'text.primary',
+                    borderRadius: 2,
+                  }}
+                >
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                    {msg.content}
+                  </Typography>
+                </Paper>
+              ))
+            )}
+            {sendingMessage && (
+              <Paper
+                sx={{
+                  p: 2,
+                  alignSelf: 'flex-start',
+                  maxWidth: '80%',
+                  bgcolor: (theme) => theme.palette.mode === 'dark' ? 'grey.800' : 'grey.100',
+                  borderRadius: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <CircularProgress size={16} />
+                <Typography variant="body1" color="text.secondary">
+                  ChatGPT is thinking...
+                </Typography>
+              </Paper>
+            )}
+          </Box>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+          <TextField
+            fullWidth
+            multiline
+            maxRows={3}
+            placeholder="Ask about this step..."
+            value={chatMessage}
+            onChange={(e) => setChatMessage(e.target.value)}
+            onKeyPress={handleChatKeyPress}
+            disabled={sendingMessage}
+            sx={{ mr: 1 }}
+          />
+          <Button
+            variant="contained"
+            onClick={handleSendMessage}
+            disabled={!chatMessage.trim() || sendingMessage}
+            sx={{
+              minWidth: '100px',
+              background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #4f46e5 0%, #0891b2 100%)',
+              }
+            }}
+            startIcon={sendingMessage ? <CircularProgress size={16} /> : <SendIcon />}
+          >
+            {sendingMessage ? 'Sending...' : 'Send'}
           </Button>
         </DialogActions>
       </Dialog>
+
         {/* Success/Error Snackbar */}
       <Snackbar
         open={showSuccessMessage}

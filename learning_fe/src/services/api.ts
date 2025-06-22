@@ -13,10 +13,13 @@ import type {
   Progress,
   ChatMessage,
   Recommendation,
+  Program,
   CreateCourseRequest,
   UpdateCourseRequest,
   CreateCourseStepRequest,
   UpdateCourseStepRequest,
+  CreateProgramRequest,
+  UpdateProgramRequest,
   EnrollmentRequest,
   UpdateEnrollmentStatusRequest,
   UpdateGithubRepositoryRequest,  UpdateCodeAnalysisRequest,
@@ -1174,6 +1177,448 @@ class ProgrammingLanguageAPI {
   }
 }
 
+class TeacherAPI {
+  // =============== Program Management ===============
+  
+  /**
+   * List all programs for the authenticated teacher
+   */
+  static async listPrograms(): Promise<ApiResponse<Program[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Program[] }> = await api.get('/teacher/programs');
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch programs',
+          code: error.response?.data?.code || 'PROGRAMS_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Create a new program
+   */
+  static async createProgram(data: CreateProgramRequest): Promise<ApiResponse<Program>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Program }> = await api.post('/teacher/programs', data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to create program',
+          code: error.response?.data?.code || 'PROGRAM_CREATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Update an existing program
+   */
+  static async updateProgram(id: number, data: UpdateProgramRequest): Promise<ApiResponse<Program>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Program }> = await api.put(`/teacher/programs/${id}`, data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to update program',
+          code: error.response?.data?.code || 'PROGRAM_UPDATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Delete a program
+   */
+  static async deleteProgram(id: number): Promise<ApiResponse<void>> {
+    try {
+      await api.delete(`/teacher/programs/${id}`);
+      return {
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to delete program',
+          code: error.response?.data?.code || 'PROGRAM_DELETE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  // =============== Course Management ===============
+  
+  /**
+   * List all courses for the authenticated teacher
+   */
+  static async listTeacherCourses(): Promise<ApiResponse<Course[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Course[] }> = await api.get('/teacher/courses');
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch teacher courses',
+          code: error.response?.data?.code || 'TEACHER_COURSES_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get a specific course for editing (teacher-owned)
+   */
+  static async getTeacherCourse(id: number): Promise<ApiResponse<Course>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Course }> = await api.get(`/teacher/courses/${id}`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch course',
+          code: error.response?.data?.code || 'TEACHER_COURSE_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Create a new course
+   */
+  static async createCourse(data: CreateCourseRequest): Promise<ApiResponse<Course>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Course }> = await api.post('/teacher/courses', data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to create course',
+          code: error.response?.data?.code || 'COURSE_CREATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Update an existing course
+   */
+  static async updateCourse(id: number, data: UpdateCourseRequest): Promise<ApiResponse<Course>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Course }> = await api.put(`/teacher/courses/${id}`, data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to update course',
+          code: error.response?.data?.code || 'COURSE_UPDATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Delete a course
+   */
+  static async deleteCourse(id: number): Promise<ApiResponse<void>> {
+    try {
+      await api.delete(`/teacher/courses/${id}`);
+      return {
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to delete course',
+          code: error.response?.data?.code || 'COURSE_DELETE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  // =============== Course Step Management ===============
+  
+  /**
+   * List all steps for a specific course (teacher-owned)
+   */
+  static async listCourseSteps(courseId: number): Promise<ApiResponse<CourseStep[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: CourseStep[] }> = await api.get(`/teacher/courses/${courseId}/steps`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch course steps',
+          code: error.response?.data?.code || 'COURSE_STEPS_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get a specific course step for editing (teacher-owned)
+   */
+  static async getCourseStep(courseId: number, stepId: number): Promise<ApiResponse<CourseStep>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: CourseStep }> = await api.get(`/teacher/courses/${courseId}/steps/${stepId}`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch course step',
+          code: error.response?.data?.code || 'COURSE_STEP_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Create a new course step
+   */
+  static async createCourseStep(courseId: number, data: CreateCourseStepRequest): Promise<ApiResponse<CourseStep>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: CourseStep }> = await api.post(`/teacher/courses/${courseId}/steps`, data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to create course step',
+          code: error.response?.data?.code || 'COURSE_STEP_CREATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Update an existing course step
+   */
+  static async updateCourseStep(courseId: number, stepId: number, data: UpdateCourseStepRequest): Promise<ApiResponse<CourseStep>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: CourseStep }> = await api.put(`/teacher/courses/${courseId}/steps/${stepId}`, data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to update course step',
+          code: error.response?.data?.code || 'COURSE_STEP_UPDATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Delete a course step
+   */
+  static async deleteCourseStep(courseId: number, stepId: number): Promise<ApiResponse<void>> {
+    try {
+      await api.delete(`/teacher/courses/${courseId}/steps/${stepId}`);
+      return {
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to delete course step',
+          code: error.response?.data?.code || 'COURSE_STEP_DELETE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Reorder course steps
+   */
+  static async reorderCourseSteps(courseId: number, stepIds: number[]): Promise<ApiResponse<CourseStep[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: CourseStep[] }> = await api.put(`/teacher/courses/${courseId}/steps/reorder`, {
+        step_ids: stepIds
+      });
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to reorder course steps',
+          code: error.response?.data?.code || 'COURSE_STEPS_REORDER_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  // =============== Enrollment Management ===============
+  
+  /**
+   * List enrollments for teacher's courses
+   */
+  static async listCourseEnrollments(courseId: number): Promise<ApiResponse<Enrollment[]>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Enrollment[] }> = await api.get(`/teacher/courses/${courseId}/enrollments`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch course enrollments',
+          code: error.response?.data?.code || 'COURSE_ENROLLMENTS_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Update enrollment status (approve/reject)
+   */
+  static async updateEnrollmentStatus(enrollmentId: number, data: UpdateEnrollmentStatusRequest): Promise<ApiResponse<Enrollment>> {
+    try {
+      const response: AxiosResponse<{ success: boolean; data: Enrollment }> = await api.put(`/teacher/enrollments/${enrollmentId}/status`, data);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to update enrollment status',
+          code: error.response?.data?.code || 'ENROLLMENT_STATUS_UPDATE_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  // =============== Analytics & Statistics ===============
+  
+  /**
+   * Get teacher dashboard statistics
+   */
+  static async getTeacherStats(): Promise<ApiResponse<{
+    total_courses: number;
+    total_students: number;
+    total_enrollments: number;
+    completion_rate: number;
+    recent_enrollments: Enrollment[];
+    popular_courses: Course[];
+  }>> {
+    try {
+      const response = await api.get('/teacher/stats');
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch teacher statistics',
+          code: error.response?.data?.code || 'TEACHER_STATS_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * Get course analytics
+   */
+  static async getCourseAnalytics(courseId: number): Promise<ApiResponse<{
+    enrollment_count: number;
+    completion_rate: number;
+    average_progress: number;
+    step_completion_rates: { step_id: number; completion_rate: number; title: string }[];
+    recent_activity: any[];
+  }>> {
+    try {
+      const response = await api.get(`/teacher/courses/${courseId}/analytics`);
+      return {
+        data: response.data.data,
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        error: {
+          message: error.response?.data?.message || 'Failed to fetch course analytics',
+          code: error.response?.data?.code || 'COURSE_ANALYTICS_FETCH_ERROR',
+          status: error.response?.status || 500,
+        },
+        success: false,
+      };
+    }
+  }
+}
+
 export default api;
 
 // Export all API classes for easy access
@@ -1185,4 +1630,5 @@ export {
   ChatAPI,
   RecommendationAPI,
   ProgrammingLanguageAPI,
+  TeacherAPI,
 };

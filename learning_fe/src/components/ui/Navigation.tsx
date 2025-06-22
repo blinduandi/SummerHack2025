@@ -30,6 +30,7 @@ import {
   PersonAdd as RegisterIcon,
   Logout as LogoutIcon,
   Home as HomeIcon,
+  School as SchoolIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../hooks';
 import { UserAvatar } from '../../utils';
@@ -154,6 +155,14 @@ export const Navigation: React.FC = () => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    // Debug user data
+  console.log('[Navigation] User data:', user);
+  console.log('[Navigation] Is authenticated:', isAuthenticated);
+  console.log('[Navigation] User type:', user?.user_type);
+  console.log('[Navigation] User role:', user?.role);
+  
+  // Helper function to get user role/type
+  const getUserRole = () => user?.role || user?.user_type;
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -201,12 +210,15 @@ export const Navigation: React.FC = () => {
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
-  };
-  const navigationItems = [
+  };  const navigationItems = [
     { label: 'Home', path: '/', icon: <HomeIcon /> },
     ...(isAuthenticated 
       ? [
           { label: 'Dashboard', path: '/dashboard', icon: <DashboardIcon /> },
+          ...(getUserRole() === 'teacher' 
+            ? [{ label: 'Teacher Dashboard', path: '/teacher/dashboard', icon: <SchoolIcon /> }]
+            : []
+          ),
           { label: 'Profile', path: '/profile', icon: <PersonIcon /> }
         ]
       : [
@@ -215,6 +227,11 @@ export const Navigation: React.FC = () => {
         ]
     ),
   ];
+
+  // Debug navigation items
+  console.log('[Navigation] Navigation items:', navigationItems);
+  console.log('[Navigation] User role/type:', getUserRole());
+  console.log('[Navigation] Teacher check:', getUserRole() === 'teacher');
 
   const drawer = (
     <Box sx={{ width: 280, pt: 2 }}>
@@ -453,15 +470,15 @@ export const Navigation: React.FC = () => {
                   </Typography>
                   <Typography variant="body2" sx={{ color: alpha('#ffffff', 0.7), mt: 0.5 }}>
                     {user.email || 'No email'}
-                  </Typography>                  {user.user_type && (
+                  </Typography>                  {getUserRole() && (
                     <Chip
-                      label={user.user_type.toUpperCase()}
+                      label={getUserRole()?.toUpperCase()}
                       size="small"
                       sx={{ 
                         mt: 1.5,
-                        backgroundColor: alpha('#6366f1', 0.2),
-                        color: '#818cf8',
-                        border: `1px solid ${alpha('#818cf8', 0.3)}`,
+                        backgroundColor: getUserRole() === 'teacher' ? alpha('#10b981', 0.2) : alpha('#6366f1', 0.2),
+                        color: getUserRole() === 'teacher' ? '#10b981' : '#818cf8',
+                        border: `1px solid ${getUserRole() === 'teacher' ? alpha('#10b981', 0.3) : alpha('#818cf8', 0.3)}`,
                         fontSize: '0.75rem',
                         fontWeight: 500,
                       }}
@@ -472,7 +489,14 @@ export const Navigation: React.FC = () => {
                 >
                   <DashboardIcon sx={{ mr: 1.5, color: '#06b6d4' }} />
                   Dashboard
-                </MenuItem>
+                </MenuItem>                {getUserRole() === 'teacher' && (
+                  <MenuItem 
+                    onClick={() => { navigate('/teacher/dashboard'); handleUserMenuClose(); }}
+                  >
+                    <SchoolIcon sx={{ mr: 1.5, color: '#10b981' }} />
+                    Teacher Dashboard
+                  </MenuItem>
+                )}
                 <MenuItem 
                   onClick={() => { navigate('/profile'); handleUserMenuClose(); }}
                 >

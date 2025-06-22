@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   user_type: 'student' | 'teacher' | 'ong' | null;
+  role?: 'student' | 'teacher' | 'ong' | null; // Add role field for API compatibility
   bio?: string | null;
   avatar?: string | null;
   skills?: any | null;

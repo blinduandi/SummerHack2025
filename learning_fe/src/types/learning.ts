@@ -6,6 +6,7 @@ export interface Course {
   title: string;
   description: string;
   content?: string;
+  category?: string; // Course category
   difficulty_level: 'beginner' | 'intermediate' | 'advanced';
   estimated_duration_hours: number;
   is_active: boolean;
@@ -56,6 +57,7 @@ export interface ProgrammingLanguage {
   id: number;
   name: string;
   description?: string;
+  icon?: string;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -111,11 +113,15 @@ export interface Recommendation {
 export interface CreateCourseRequest {
   title: string;
   description: string;
-  content?: string;
+  category: string; // Make category required
   difficulty_level: 'beginner' | 'intermediate' | 'advanced';
   estimated_duration_hours: number;
   programming_language_id: number;
-  is_active?: boolean;
+  program_id?: number;
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  tags?: string[];
+  is_published?: boolean;
 }
 
 export interface UpdateCourseRequest extends Partial<CreateCourseRequest> {}
@@ -127,8 +133,13 @@ export interface CreateCourseStepRequest {
   step_order: number;
   step_type: 'lesson' | 'exercise' | 'quiz' | 'project';
   is_required?: boolean;
-  metadata?: Record<string, any>;
-  is_active?: boolean;
+  metadata?: {
+    estimated_duration?: number;
+    difficulty?: string;
+    keywords?: string[];
+    [key: string]: any;
+  };
+  is_published?: boolean;
 }
 
 export interface UpdateCourseStepRequest extends Partial<CreateCourseStepRequest> {}
@@ -152,7 +163,7 @@ export interface UpdateCodeAnalysisRequest {
 }
 
 export interface UpdateStepProgressRequest {
-  status?: 'hidden' | 'in_progress' | 'solved';
+  status?: 'hidden' | 'in_progress' | 'solved' | 'completed';
   progress_data?: {
     read_time?: number;
     notes?: string;
@@ -247,4 +258,42 @@ export interface ProgressOverviewResponse {
   certificates_earned: number;
   current_streak: number;
   recent_progress: Progress[];
+}
+
+// Program types
+export interface Program {
+  id: number;
+  title: string;
+  description: string;
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  estimated_duration_weeks: number;
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  is_published: boolean;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+  courses_count?: number;
+  enrolled_students_count?: number;
+}
+
+// Request types for teacher functionality
+export interface CreateProgramRequest {
+  title: string;
+  description: string;
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  estimated_duration_weeks: number;
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  is_published?: boolean;
+}
+
+export interface UpdateProgramRequest {
+  title?: string;
+  description?: string;
+  difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  estimated_duration_weeks?: number;
+  prerequisites?: string[];
+  learning_objectives?: string[];
+  is_published?: boolean;
 }
